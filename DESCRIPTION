@@ -1,0 +1,32 @@
+Package: metaflow
+Title: What the Package Does (One Line, Title Case)
+Version: 0.0.0.9000
+Author: Jason Ge [aut] <jge@netflix.com>, 
+  Savin Goyal [aut, cre] <savin@netflix.com>,
+  David Neuzerling [ctb] <david@neuzerling.com>
+Maintainer: Jason Ge <help@metaflow.org>
+Description: Metaflow is a human-friendly R package 
+  that helps scientists and engineers build and manage real-life data science projects. 
+  Metaflow was originally developed at Netflix to boost productivity of data scientists 
+  who work on a wide variety of projects from classical statistics to state-of-the-art deep learning.
+Encoding: UTF-8
+License: Apache License (>= 2.0) | file LICENSE
+LazyData: true
+URL: https://metaflow.org/,
+  https://docs.metaflow.org/,
+  https://github.com/Netflix/metaflow
+BugReports: https://github.com/Netflix/metaflow/issues
+RoxygenNote: 7.2.1
+Imports:
+    R6,
+    crayon,
+    reticulate (>= 1.20),
+    magrittr
+Config/reticulate:
+    list(
+        packages = list(
+            list(package = "pandas"),
+            list(package = "numpy"),
+            list(package = "metaflow")
+        )
+    )

@@ -1,0 +1,15 @@
+^renv$
+^renv\.lock$
+^.*\.Rproj$
+^\.Rproj\.user$
+^LICENSE$
+^images$
+^\.github/workflows$
+^cran-comments\.md$
+^CRAN-RELEASE$
+^docs$
+^pkgdown$
+^NEWS\.md$
+^\.github
+^Dockerfile$
+^CODE_OF_CONDUCT\.md$

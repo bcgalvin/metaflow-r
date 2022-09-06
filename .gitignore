@@ -1,0 +1,15 @@
+*.Rproj
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+renv*
+.Rprofile
+*.Rcheck/
+.Renviron
+/*.tar.gz
+
+*_cache/
+/cache/
+
+.httr-oauth
