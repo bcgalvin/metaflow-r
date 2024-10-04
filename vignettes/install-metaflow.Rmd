@@ -1,0 +1,142 @@
+---
+title: "Installing Metaflow"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Installing Metaflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Introduction
+
+This vignette guides you through the process of installing Metaflow using the R package. Metaflow is a Python library, but this R package provides a convenient way to install and use Metaflow within an R environment.
+
+## Prerequisites
+
+Before installing Metaflow, ensure you have:
+
+1. R (version 3.6 or later)
+2. Python (version 3.7 or later)
+
+## Basic Installation
+
+To install the latest version of Metaflow, use the `install_metaflow()` function:
+
+```{r, eval=FALSE}
+library(metaflow)
+install_metaflow()
+```
+
+This will install Metaflow in a virtual environment named "r-metaflow".
+
+## Customizing the Installation
+
+### Specifying a Version
+
+You can install a specific version of Metaflow:
+
+```{r, eval=FALSE}
+install_metaflow(version = "2.7.3")
+```
+
+### Using Conda
+
+To use Conda for installation:
+
+```{r, eval=FALSE}
+install_metaflow(method = "conda")
+```
+
+You can specify the Conda executable path if needed:
+
+```{r, eval=FALSE}
+install_metaflow(method = "conda", conda = "/path/to/conda")
+```
+
+### Using pip
+
+By default, `install_metaflow()` uses pip. You can make this explicit:
+
+```{r, eval=FALSE}
+install_metaflow(method = "virtualenv")
+```
+
+### Custom Environment Name
+
+Specify a custom environment name:
+
+```{r, eval=FALSE}
+install_metaflow(envname = "my-metaflow-env")
+```
+
+### Additional Packages
+
+Install additional Python packages along with Metaflow:
+
+```{r, eval=FALSE}
+install_metaflow(extra_packages = c("pandas", "numpy"))
+```
+
+### Specifying Python Version
+
+Choose a specific Python version:
+
+```{r, eval=FALSE}
+install_metaflow(python_version = "3.8")
+```
+
+## Using Existing Python Environments
+
+Instead of creating a new environment, you can use an existing Python installation by setting environment variables:
+
+1. Use `METAFLOW_PYTHON`:
+   Set this to the path of your Python executable to use a specific Python installation for Metaflow.
+
+   ```r
+   Sys.setenv(METAFLOW_PYTHON = "/path/to/python")
+   ```
+
+2. Use `RETICULATE_PYTHON`:
+   This is a more general approach and will affect all Python interactions through reticulate.
+
+   ```r
+   Sys.setenv(RETICULATE_PYTHON = "/path/to/python")
+   ```
+
+After setting either of these variables, you can use Metaflow without running `install_metaflow()`.
+
+## Verifying the Installation
+
+After installation, verify that Metaflow is correctly installed:
+
+```{r, eval=FALSE}
+library(metaflow)
+metaflow::metaflow_version()
+```
+
+This should print the installed version of Metaflow.
+
+## Troubleshooting
+
+If you encounter issues during installation:
+
+1. Ensure you have the required Python version installed.
+2. Check that you have write permissions in the installation directory.
+3. If using Conda, make sure Conda is properly set up in your system.
+
+For more detailed information, refer to the `install_metaflow()` function documentation:
+
+```{r, eval=FALSE}
+?install_metaflow
+```
+
+## Conclusion
+
+You should now have Metaflow installed and ready to use in your R environment. For more information on using Metaflow, refer to other vignettes in this package or the official Metaflow documentation.
