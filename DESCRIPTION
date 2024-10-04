@@ -1,7 +1,7 @@
 Package: metaflow
 Type: Package
 Title: R Interface to 'Metaflow'
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R: c(
     person("Bryan", "Galvin", email = "bcgalvin@gmail.com", role = c("aut", "cre"))
      )
@@ -14,14 +14,16 @@ Description: Interface to 'Metaflow' <https://metaflow.org/>, a framework
   within their preferred R environment, facilitating efficient development
   and deployment of data science projects.
 URL: https://metaflow.org/, https://docs.metaflow.org/v/r/, https://github.com/Netflix/metaflow, https://bcgalvin.github.io/metaflow-r/
-BugReports: https://github.com/Netflix/metaflow/issues
+BugReports: https://github.com/bcgalvin/metaflow-r/issues
 License: Apache License (>= 2)
 Encoding: UTF-8
 LazyData: true
 Imports: 
     reticulate (>= 1.35),
-    cli (>= 3.6.2)
+    cli (>= 3.0.0)
 Suggests: 
+    knitr,
+    rmarkdown,
     testthat (>= 3.0.0)
 Config/reticulate:
   list(
@@ -34,3 +36,4 @@ Config/reticulate:
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+VignetteBuilder: knitr

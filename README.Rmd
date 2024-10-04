@@ -4,53 +4,55 @@ output: github_document
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-```{r, include = FALSE}
+```{r, include=FALSE}
+stopifnot(require(knitr))
+options(width = 120)
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
-  out.width = "100%"
+  dev = "png",
+  dpi = 150,
+  fig.asp = 0.8,
+  fig.width = 5,
+  out.width = "60%",
+  fig.align = "center"
 )
 ```
 
-# metaflow
+
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![CRAN status](https://www.r-pkg.org/badges/version/metaflow)](https://CRAN.R-project.org/package=metaflow)
 <!-- badges: end -->
 
-The goal of metaflow is to ...
+
+# <img src="man/figures/logo.png" align="center" width="120" /> metaflow 
+
+
+Interface to 'Metaflow' <https://metaflow.org/>, a framework for constructing and managing data science workflows. 'Metaflow' implements a unified API for the entire data science project lifecycle, from initial prototyping all the way to production deployment. Key features encompass version control, scalability, and seamless integration with popular cloud orchestration tools. This R package enables data scientists to harness 'Metaflow's' capabilities within their preferred R environment, facilitating efficient development and deployment of data science projects.
 
 ## Installation
 
-You can install the development version of metaflow like so:
+You can install the development version of metaflow from [GitHub](https://github.com/bcgalvin/metaflow-r) with:
 
 ``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+# install.packages("devtools")
+devtools::install_github("bcgalvin/metaflow-r")
 ```
 
-## Example
+## Usage
 
-This is a basic example which shows you how to solve a common problem:
-
-```{r example}
+```r
 library(metaflow)
-## basic example code
+
+# Install Metaflow
+install_metaflow()
+
+# Use Metaflow functions
+metaflow()
+mf()
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
-
-```{r cars}
-summary(cars)
-```
-
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this.
-
-You can also embed plots, for example:
-
-```{r pressure, echo = FALSE}
-plot(pressure)
-```
-
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.
+For more detailed information, please refer to the package documentation and vignettes.

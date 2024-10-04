@@ -16,4 +16,4 @@ Module(metaflow)
 \description{
 Handle to the \code{metaflow} module
 }
-\keyword{datasets}
+\keyword{internal}

@@ -2,8 +2,8 @@
 % Please edit documentation in R/package.R
 \docType{package}
 \name{metaflow}
-\alias{metaflow}
 \alias{metaflow-package}
+\alias{metaflow}
 \title{Metaflow for R}
 \description{
 \href{https://metaflow.org/}{Metaflow} is an open-source framework
@@ -33,7 +33,7 @@ For additional documentation on the Metaflow package, see
 
 \section{Enterprise Support}{
 
-For more information about Metaflow and its enterprise offerings, visit
+For more information about managed Metaflow enterprise offerings, visit
 \href{https://outerbounds.com/}{Outerbounds}
 }
 

@@ -4,7 +4,7 @@ mf <- NULL
 
 #' Handle to the `metaflow` module
 #'
-#' @export
+#' @keywords internal
 #' @return Module(metaflow)
 mf <- NULL
 
@@ -31,6 +31,7 @@ mf <- NULL
   })
 }
 
+#' @keywords internal
 .import_metaflow <- function() {
   mf <<- reticulate::import(
     "metaflow",
@@ -45,6 +46,7 @@ mf <- NULL
   }
 }
 
+#' @keywords internal
 is_metaflow_available <- function() {
   !is.null(.globals[["mf"]]) && !is.null(.globals[["mf"]][["__version__"]])
 }

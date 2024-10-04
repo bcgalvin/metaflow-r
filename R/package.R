@@ -25,12 +25,11 @@
 #' \href{https://docs.metaflow.org/v/r/}{https://docs.metaflow.org/v/r/}
 #'
 #' @section Enterprise Support:
-#' For more information about Metaflow and its enterprise offerings, visit
+#' For more information about managed Metaflow enterprise offerings, visit
 #' \href{https://outerbounds.com/}{Outerbounds}
 #'
 #'
 #' @docType package
-#' @aliases metaflow-package
 #' @name metaflow
 #' @seealso
 #' \code{\link{install_metaflow}} for installing Metaflow and its dependencies

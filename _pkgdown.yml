@@ -1,4 +1,52 @@
 url: https://bcgalvin.github.io/metaflow-r/
-template:
-  bootstrap: 5
 
+destination: docs
+
+development:
+  mode: auto
+
+template:
+  params:
+    bootswatch: cosmo
+
+navbar:
+  title: "Metaflow"
+  left:
+    - icon: fa-home fa-lg
+      href: index.html
+    - text: "Articles"
+      href: articles/index.html
+    - text: "Reference"
+      href: reference/index.html
+    - text: "News"
+      href: news/index.html
+    - text: "Metaflow Documentation"
+      href: https://metaflow.org
+  right:
+   - icon: fa-github
+     href: https://github.com/bcgalvin/metaflow-r
+
+home:
+  links:
+    - text: Metaflow Resources
+      href: https://docs.metaflow.org/introduction/metaflow-resources
+
+
+articles:
+  - title: "Getting started"
+    desc: >
+      Installing Metaflow and using the basic functionality
+    contents:
+      - install-metaflow
+
+reference:
+  - title: "Overview"
+    desc: >
+      Pacakge overview and global options
+    contents:
+      - metaflow-package
+  - title: "Installation"
+    desc: >
+      Installing Metaflow with different options
+    contents:
+      - install_metaflow
