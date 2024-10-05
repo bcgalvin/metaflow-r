@@ -38,7 +38,11 @@ articles:
       Installing Metaflow and using the basic functionality
     contents:
       - install-metaflow
-
+  - title: "Metaflow Configurations"
+    desc: >
+      Managing Metaflow Configuration in R
+    contents:
+      - metaflow-config
 reference:
   - title: "Overview"
     desc: >
@@ -50,3 +54,8 @@ reference:
       Installing Metaflow with different options
     contents:
       - install_metaflow
+  - title: "Metaflow Configurations"
+    desc: >
+      Managing Metaflow Configuration in R
+    contents:
+      - metaflow-config
