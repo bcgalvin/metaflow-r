@@ -16,7 +16,7 @@
 #' @param extra_packages Additional Python packages to install along with
 #'   Metaflow
 #' @param restart_session Restart R session after installing (only in RStudio)
-#' @param python_version Python version to use. Must be >= 3.7.
+#' @param python_version Python version to use. Must be >= 3.8.
 #' @param new_env Whether to create a new environment or use an existing one
 #' @param ... Additional arguments passed to reticulate installation functions
 #'
@@ -67,49 +67,52 @@ install_metaflow <- function(
 
   packages <- prepare_packages(version, extra_packages, method)
 
-  # Determine if pip should be used
-  pip <- if (method == "conda") FALSE else TRUE
+  # Install packages
+  reticulate::py_install(
+    packages = packages,
+    envname = envname,
+    method = method,
+    conda = conda,
+    python_version = python_version,
+    pip = TRUE,
+    ...
+  )
 
-  # Set Conda channel if method is 'conda'
-  channel <- if (method == "conda") "conda-forge" else NULL
+  cli::cli_alert_success("Metaflow installation complete.")
 
-  if (method == "conda") {
-    cli::cli_alert_info(paste0(
-      "Installing Metaflow via Conda in the environment '",
-      envname,
-      "'."
-    ))
-  } else {
-    cli::cli_alert_info(paste0(
-      "Installing Metaflow via pip in the environment '",
-      envname,
-      "'."
-    ))
+  if (restart_session &&
+    requireNamespace("rstudioapi", quietly = TRUE) &&
+    rstudioapi::hasFun("restartSession")) {
+    rstudioapi::restartSession()
   }
-
-  suppressMessages({
-    reticulate::py_install(
-      packages = packages,
-      envname = envname,
-      method = method,
-      conda = conda,
-      python_version = python_version,
-      pip = pip,
-      channel = channel,
-      ...
-    )
-
-    cli::cli_alert_success("Metaflow installation complete.")
-
-    if (restart_session &&
-          requireNamespace("rstudioapi", quietly = TRUE) &&
-          rstudioapi::hasFun("restartSession")) {
-      rstudioapi::restartSession()
-    }
-  })
 
   invisible(NULL)
 }
+
+#' Get the installed Metaflow version
+#'
+#' @description
+#' `metaflow_version()` returns the version of the installed Metaflow Python
+#' package.
+#'
+#' @return A character string representing the Metaflow version.
+#'
+#' @examples
+#' metaflow_version()
+#'
+#' @export
+metaflow_version <- function() {
+  if (is_metaflow_available()) {
+    .globals[["mf"]][["__version__"]]
+  } else {
+    stop(
+      "Metaflow is not available. ",
+      "Please install Metaflow using install_metaflow()."
+    )
+  }
+}
+
+
 
 #' @keywords internal
 check_system <- function() {
@@ -124,21 +127,20 @@ check_system <- function() {
 #' @keywords internal
 check_python_version <- function(python_version) {
   if (is.null(python_version)) {
-    return(">=3.7")
-  } else if (numeric_version(python_version) < "3.7") {
-    cli::cli_abort("Python version must be 3.7 or higher for Metaflow.")
+    return(">=3.8")
+  } else if (numeric_version(python_version) < "3.8") {
+    cli::cli_abort("Python version must be 3.8 or higher for Metaflow.")
   }
   return(python_version)
 }
 
 #' @keywords internal
 check_existing_environment <- function(envname, method) {
-  if (method == "conda" && reticulate::condaenv_exists(envname)) {
-    return(TRUE)
-  } else if (method != "conda" && reticulate::virtualenv_exists(envname)) {
-    return(TRUE)
+  if (method == "conda") {
+    return(reticulate::condaenv_exists(envname))
+  } else {
+    return(reticulate::virtualenv_exists(envname))
   }
-  return(FALSE)
 }
 
 #' @keywords internal
@@ -171,14 +173,6 @@ prepare_environment <- function(new_env, envname, method, python_version) {
   }
 }
 
-check_existing_environment <- function(envname, method) {
-  if (method == "conda") {
-    return(reticulate::condaenv_exists(envname))
-  } else {
-    return(reticulate::virtualenv_exists(envname))
-  }
-}
-
 #' @keywords internal
 prepare_packages <- function(version, extra_packages, method) {
   mf_package_spec <- parse_metaflow_version(version, method)
@@ -188,8 +182,8 @@ prepare_packages <- function(version, extra_packages, method) {
 #' @keywords internal
 parse_metaflow_version <- function(version, method) {
   if (is.null(version) || is.na(version) ||
-        version %in% c("", "default", "latest")) {
-    return("metaflow")  # Install the latest version
+    version %in% c("", "default", "latest")) {
+    return("metaflow") # Install the latest version
   }
 
   version <- as.character(version)

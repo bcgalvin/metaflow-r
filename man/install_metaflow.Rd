@@ -34,7 +34,7 @@ Metaflow}
 
 \item{restart_session}{Restart R session after installing (only in RStudio)}
 
-\item{python_version}{Python version to use. Must be >= 3.7.}
+\item{python_version}{Python version to use. Must be >= 3.8.}
 
 \item{new_env}{Whether to create a new environment or use an existing one}
 

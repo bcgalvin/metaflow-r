@@ -96,19 +96,12 @@ install_metaflow(python_version = "3.8")
 
 Instead of creating a new environment, you can use an existing Python installation by setting environment variables:
 
-1. Use `METAFLOW_PYTHON`:
-   Set this to the path of your Python executable to use a specific Python installation for Metaflow.
+Use `METAFLOW_PYTHON`:
+Set this to the path of your Python executable to use a specific Python installation for Metaflow.
 
-   ```r
-   Sys.setenv(METAFLOW_PYTHON = "/path/to/python")
-   ```
-
-2. Use `RETICULATE_PYTHON`:
-   This is a more general approach and will affect all Python interactions through reticulate.
-
-   ```r
-   Sys.setenv(RETICULATE_PYTHON = "/path/to/python")
-   ```
+```r
+Sys.setenv(METAFLOW_PYTHON = "/path/to/python")
+```
 
 After setting either of these variables, you can use Metaflow without running `install_metaflow()`.
 
