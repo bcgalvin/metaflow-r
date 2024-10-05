@@ -1,6 +1,7 @@
 # package level state
 .globals <- new.env(parent = emptyenv())
 .globals[["mf"]] <- NULL
+.globals[["mf_config"]] <- NULL
 
 
 .onLoad <- function(libname, pkgname) {

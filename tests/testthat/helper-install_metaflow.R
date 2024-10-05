@@ -11,16 +11,22 @@ setup_mocks <- function(envir = parent.frame()) {
     condaenv_exists = mockery::mock(),
     py_install = mockery::mock()
   )
-  withr::defer({
-    # Clean up or restore mocks if necessary
-  }, envir = envir)
+  withr::defer(
+    {
+      # Clean up or restore mocks if necessary
+    },
+    envir = envir
+  )
   mocks
 }
 local_mf <- function(value = NULL, envir = parent.frame()) {
   old_globals <- .globals
   .globals <- new.env(parent = emptyenv())
   .globals[["mf"]] <- value
-  withr::defer({
-    .globals <- old_globals
-  }, envir = envir)
+  withr::defer(
+    {
+      .globals <- old_globals
+    },
+    envir = envir
+  )
 }

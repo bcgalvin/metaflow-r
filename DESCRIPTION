@@ -20,7 +20,9 @@ Encoding: UTF-8
 Imports: 
     reticulate (>= 1.35),
     cli (>= 3.0.0),
-    withr (>= 3.0.0)
+    withr (>= 3.0.0),
+    R6 (>= 2.5.0),
+    yaml (>= 2.3.0)
 Suggests: 
     knitr,
     rmarkdown,
