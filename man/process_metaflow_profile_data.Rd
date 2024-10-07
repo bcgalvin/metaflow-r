@@ -8,8 +8,8 @@ process_metaflow_profile_data(
   data,
   title,
   return_data = FALSE,
-  key_col = "Key",
-  value_col = "Value"
+  key_col = "key",
+  value_col = "value"
 )
 }
 \description{
