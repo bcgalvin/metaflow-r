@@ -44,6 +44,56 @@ get_available_metaflow_profiles <- function(return_data = FALSE) {
   process_metaflow_profile_data(profiles, "Available Metaflow Profiles", return_data, "profile", "path")
 }
 
+#' Show Active Metaflow Profile
+#'
+#' Display information about the currently active Metaflow profile in a Shiny app viewer.
+#'
+#' @return The function returns the result of `display_data_generic()`, which launches a Shiny app
+#'   to display the active profile details in the RStudio Viewer pane or an external browser.
+#' @examples
+#' \dontrun{
+#' # Display the active profile in a Shiny app
+#' show_active_metaflow_profile()
+#' }
+#' @seealso [get_active_profile()], [process_metaflow_profile_data()]
+#' @export
+show_active_metaflow_profile <- function() {
+  active_profile <- get_active_profile()
+  profile <- active_profile[["profile_name"]]
+  data_df <- process_metaflow_profile_data(profile, "Active Metaflow Profile", return_data = TRUE)
+  metaflow_profile_viewer(
+    data_df = data_df,
+    shiny_app_func = active_metaflow_profile_app,
+    title = "Active Metaflow Profile",
+    profile = profile,
+    profile_path = active_profile[["profile_path"]]
+  )
+}
+
+#' Show Available Metaflow Profiles
+#'
+#' Display a list of all available Metaflow profiles in a Shiny app viewer.
+#'
+#' @return The function returns the result of `display_data_generic()`, which launches a Shiny app
+#'   to display the list of available profiles in the RStudio Viewer pane or an external browser.
+#' @examples
+#' \dontrun{
+#' # Display all available profiles in a Shiny app
+#' show_available_metaflow_profiles()
+#' }
+#' @seealso [get_profiles()], [process_metaflow_profile_data()]
+#' @export
+show_available_metaflow_profiles <- function() {
+  data <- get_profiles()
+  profiles <- setNames(data, basename(data))
+  data_df <- process_metaflow_profile_data(profiles, "Available Metaflow Profiles", return_data = TRUE, key_col = "profile", value_col = "path")
+  metaflow_profile_viewer(
+    data_df = data_df,
+    shiny_app_func = available_metaflow_profiles_app,
+    title = "Available Metaflow Profiles"
+  )
+}
+
 #' Get the current active Metaflow profile
 #' @keywords internal
 get_active_profile <- function() {
@@ -159,15 +209,15 @@ load_default_profile <- function() {
 
 #' Helper function to process and display Metaflow profile data
 #' @keywords internal
-process_metaflow_profile_data <- function(data, title, return_data = FALSE, key_col = "Key", value_col = "Value") {
+process_metaflow_profile_data <- function(data, title, return_data = FALSE, key_col = "key", value_col = "value") {
   if (is.null(data) || length(data) == 0L) {
     cli::cli_alert_warning(paste("No", tolower(title), "found."))
     return(invisible(NULL))
   }
 
   data_df <- data.frame(
-    Key = names(data),
-    Value = unlist(data),
+    key = names(data),
+    value = unlist(data),
     stringsAsFactors = FALSE,
     row.names = NULL
   )
