@@ -1,15 +1,19 @@
 linters: linters_with_tags(
     tags = c( "best_practices", "common_mistakes", "package_development", "pkg_testthat","configurable", "correctness", "readability",  "robustness", "style"),
-    indentation_linter = NULL
+    indentation_linter = NULL,
+    line_length_linter = NULL,
+    object_usage_linter = NULL,
+    object_length_linter = NULL
   )
 exclusions: list(
     "vignettes/",
-    "tests/testthat" = list(
+    "tests/testthat/" = list(
       extraction_operator_linter = Inf,
       line_length_linter = Inf
     ),
     "R/zzz.R" = list(
-      undesirable_operator_linter = Inf
+      undesirable_operator_linter = Inf,
+      object_usage_linter = Inf
     ),
     "R/metaflow_config.R" = list(
       extraction_operator_linter = Inf,
