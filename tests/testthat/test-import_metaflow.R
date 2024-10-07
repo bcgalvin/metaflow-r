@@ -5,11 +5,13 @@ test_that("ensure_metaflow uses METAFLOW_PYTHON when set and valid", {
   local_mf()
 
   # Mock reticulate functions
+  mock_use_python <- mockery::mock()
   mock_py_config <- mockery::mock(list(version = "3.8"))
   mock_py_module_available <- mockery::mock(TRUE)
   mock_import <- mockery::mock(list(`__version__` = "2.2.5"))
 
   # Stub reticulate functions
+  mockery::stub(ensure_metaflow, "reticulate::use_python", mock_use_python)
   mockery::stub(ensure_metaflow, "reticulate::py_config", mock_py_config)
   mockery::stub(
     ensure_metaflow,
@@ -25,39 +27,58 @@ test_that("ensure_metaflow uses METAFLOW_PYTHON when set and valid", {
   expect_false(is.null(.globals[["mf"]]))
   expect_identical(.globals[["mf"]][["__version__"]], "2.2.5")
 
-  # Verify that reticulate::py_config was called with the correct argument
+  # Verify that reticulate::use_python was called with the correct argument
+  mockery::expect_called(mock_use_python, 1L)
+  captured_args <- mockery::mock_args(mock_use_python)[[1L]]
+
+  expected_python_path <- file.path("path", "to", "valid", "python")
+  expect_identical(captured_args[["python"]], expected_python_path)
+
+  # Verify that reticulate::py_config was called
   mockery::expect_called(mock_py_config, 1L)
-  expect_identical(
-    mockery::mock_args(mock_py_config)[[1L]][["python"]],
-    file.path("path", "to", "valid", "python")
-  )
 })
 
-test_that(paste0(
-  "ensure_metaflow throws error when METAFLOW_PYTHON has ",
-  "old Python version"
-), {
+test_that("ensure_metaflow throws error when METAFLOW_PYTHON has old Python version", {
   withr::local_envvar(METAFLOW_PYTHON = file.path("path", "to", "python3.7"))
   local_mf()
 
   # Mock reticulate functions
   mock_use_python <- mockery::mock()
   mock_py_config <- mockery::mock(list(version = "3.7"))
+  mock_py_module_available <- mockery::mock(TRUE)
+  mock_import <- mockery::mock(list(`__version__` = "2.2.5"))
 
   # Stub reticulate functions
   mockery::stub(ensure_metaflow, "reticulate::use_python", mock_use_python)
   mockery::stub(ensure_metaflow, "reticulate::py_config", mock_py_config)
+  mockery::stub(
+    ensure_metaflow,
+    "reticulate::py_module_available",
+    mock_py_module_available
+  )
+  mockery::stub(ensure_metaflow, "reticulate::import", mock_import)
 
-  # Expect an error
+  # Expect an error with the exact message
   expect_error(
     ensure_metaflow(),
-    "Metaflow requires Python >= 3.8."
+    regexp = "The Python specified by `METAFLOW_PYTHON` has version\\s+3\\.7, which is unsupported\\."
   )
+
+  # Verify that reticulate::use_python() was called with the correct argument
+  mockery::expect_called(mock_use_python, 1L)
+  expect_identical(
+    mockery::mock_args(mock_use_python)[[1L]][["python"]],
+    file.path("path", "to", "python3.7")
+  )
+
+  # Verify that reticulate::py_config() was called
+  mockery::expect_called(mock_py_config, 1L)
 })
 
 test_that("ensure_metaflow throws error when Metaflow is not installed", {
   withr::local_envvar(METAFLOW_PYTHON = file.path("invalid", "path", "python"))
   local_mf()
+  local_reproducible_output(crayon = TRUE)
 
   # Mock reticulate functions
   mock_use_python <- mockery::mock()
@@ -73,20 +94,19 @@ test_that("ensure_metaflow throws error when Metaflow is not installed", {
     mock_py_module_available
   )
 
-  local_mf()
-  # Expect an error
-  expect_error(
-    ensure_metaflow(),
-    paste0(
-      "Metaflow is not installed in the Python environment ",
-      "specified by METAFLOW_PYTHON."
-    )
+  # Use expect_snapshot_error instead of expect_error
+  expect_snapshot_error(
+    ensure_metaflow()
   )
+
+  # Verify that reticulate::use_python() was called
+  mockery::expect_called(mock_use_python, 1L)
 })
 
 test_that("ensure_metaflow throws error when Metaflow version is too low", {
   withr::local_envvar(METAFLOW_PYTHON = file.path("path", "to", "python3.8"))
   local_mf()
+  local_reproducible_output(crayon = TRUE)
 
   # Mock reticulate functions
   mock_use_python <- mockery::mock()
@@ -104,18 +124,13 @@ test_that("ensure_metaflow throws error when Metaflow version is too low", {
   )
   mockery::stub(ensure_metaflow, "reticulate::import", mock_import)
 
-  # Temporarily reset .globals[["mf"]]
-  # Expect an error
-  expect_error(
-    ensure_metaflow(),
-    "Metaflow version .* is installed, but version >= 2.0 is required."
+  # Use expect_snapshot_error instead of expect_error
+  expect_snapshot_error(
+    ensure_metaflow()
   )
 })
 
-test_that(paste0(
-  "ensure_metaflow proceeds with default behavior when ",
-  "METAFLOW_PYTHON is not set"
-), {
+test_that("ensure_metaflow proceeds with default behavior when METAFLOW_PYTHON is not set", {
   withr::local_envvar(METAFLOW_PYTHON = NA)
   local_mf()
 
@@ -134,25 +149,21 @@ test_that(paste0(
   expect_identical(.globals[["mf"]][["__version__"]], "2.2.5")
 })
 
-test_that(paste0(
-  "ensure_metaflow throws error when METAFLOW_PYTHON path ",
-  "is invalid"
-), {
-  withr::local_envvar(METAFLOW_PYTHON = file.path("invalid", "path", "python"))
+test_that("ensure_metaflow errors with invalid METAFLOW_PYTHON path", {
+  withr::local_envvar(METAFLOW_PYTHON = "/invalid/path")
   local_mf()
 
   # Mock reticulate functions to simulate invalid path
-  mock_use_python <- mockery::mock(side_effect = function(...) {
-    stop("Python executable not found")
-  })
+  mock_use_python <- mockery::mock(stop("Specified version of python '/invalid/path' does not exist."))
 
   # Stub reticulate functions
   mockery::stub(ensure_metaflow, "reticulate::use_python", mock_use_python)
 
-  # Temporarily reset .globals[["mf"]]
-  # Expect an error with specific message
   expect_error(
     ensure_metaflow(),
-    "Python executable not found at path: .*"
+    regexp = "Python executable not found at path: ''/invalid/path''\\."
   )
+
+  # Verify that reticulate::use_python() was called
+  mockery::expect_called(mock_use_python, 1L)
 })

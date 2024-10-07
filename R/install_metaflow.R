@@ -49,7 +49,7 @@
 #'
 #' @export
 install_metaflow <- function(
-    method = c("auto", "virtualenv", "conda"),
+    method = c("virtualenv", "conda", "auto"),
     conda = "auto",
     version = "default",
     envname = "r-metaflow",
@@ -59,6 +59,14 @@ install_metaflow <- function(
     new_env = TRUE,
     ...) {
   method <- match.arg(method)
+  checkmate::assert_choice(method, c("virtualenv", "conda", "auto"))
+  checkmate::assert_string(conda)
+  checkmate::assert_string(version)
+  checkmate::assert_string(envname, min.chars = 1L)
+  checkmate::assert_character(extra_packages, null.ok = TRUE)
+  checkmate::assert_logical(restart_session, len = 1L)
+  checkmate::assert_string(python_version, null.ok = TRUE)
+  checkmate::assert_logical(new_env, len = 1L)
 
   check_system()
   python_version <- check_python_version(python_version)
@@ -78,7 +86,7 @@ install_metaflow <- function(
     ...
   )
 
-  cli::cli_alert_success("Metaflow installation complete.")
+  cli::cli_alert_success("{.pkg Metaflow} installation complete.")
 
   if (restart_session &&
     requireNamespace("rstudioapi", quietly = TRUE) &&
@@ -110,100 +118,4 @@ metaflow_version <- function() {
       "Please install Metaflow using install_metaflow()."
     )
   }
-}
-
-
-
-#' @keywords internal
-check_system <- function() {
-  if (Sys.info()[["sysname"]] == "Windows") {
-    cli::cli_abort(c(
-      "Metaflow installation is not supported on Windows.",
-      "Installation is only available for Mac and Linux systems."
-    ))
-  }
-}
-
-#' @keywords internal
-check_python_version <- function(python_version) {
-  if (is.null(python_version)) {
-    return(">=3.8")
-  } else if (numeric_version(python_version) < "3.8") {
-    cli::cli_abort("Python version must be 3.8 or higher for Metaflow.")
-  }
-  return(python_version)
-}
-
-#' @keywords internal
-check_existing_environment <- function(envname, method) {
-  if (method == "conda") {
-    return(reticulate::condaenv_exists(envname))
-  } else {
-    return(reticulate::virtualenv_exists(envname))
-  }
-}
-
-#' @keywords internal
-prepare_environment <- function(new_env, envname, method, python_version) {
-  if (new_env && check_existing_environment(envname, method)) {
-    cli::cli_alert_info("Removing existing environment: {envname}")
-    if (method == "conda") {
-      reticulate::conda_remove(envname)
-      reticulate::conda_create(
-        envname,
-        packages = "python",
-        python_version = python_version
-      )
-    } else {
-      reticulate::virtualenv_remove(envname, confirm = FALSE)
-      reticulate::virtualenv_create(envname, python = python_version)
-    }
-  } else if (new_env) {
-    if (method == "conda") {
-      reticulate::conda_create(
-        envname,
-        packages = "python",
-        python_version = python_version
-      )
-    } else {
-      reticulate::virtualenv_create(envname, python = python_version)
-    }
-  } else {
-    cli::cli_alert_info("Using existing environment: {envname}")
-  }
-}
-
-#' @keywords internal
-prepare_packages <- function(version, extra_packages, method) {
-  mf_package_spec <- parse_metaflow_version(version, method)
-  unique(c(mf_package_spec, as.character(extra_packages)))
-}
-
-#' @keywords internal
-parse_metaflow_version <- function(version, method) {
-  if (is.null(version) || is.na(version) ||
-    version %in% c("", "default", "latest")) {
-    return("metaflow") # Install the latest version
-  }
-
-  version <- as.character(version)
-
-  valid_version_pattern <- "^[><=]*\\s*\\d+(\\.\\d+)*$"
-  if (!grepl(valid_version_pattern, version)) {
-    cli::cli_abort("Invalid version specified")
-  }
-
-  if (method == "conda") {
-    # For Conda, use '=' for exact version
-    if (!grepl("[><=]", version)) {
-      version <- sprintf("=%s", version)
-    }
-  } else {
-    # For pip, use '==' for exact version
-    if (!grepl("[><=]", version)) {
-      version <- sprintf("==%s", version)
-    }
-  }
-
-  paste0("metaflow", version)
 }

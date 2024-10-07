@@ -1,8 +1,3 @@
-# Load helper functions
-testthat::local_test_context()
-withr::local_envvar(R_METAFLOW_TEST_MOCK = "true")
-local_mf()
-
 test_that("parse_metaflow_version handles different inputs correctly", {
   test_cases <- list(
     list(input = "2.2.5", method = "conda", expected = "metaflow=2.2.5"),
@@ -21,6 +16,11 @@ test_that("parse_metaflow_version handles different inputs correctly", {
       case[["expected"]]
     )
   }
+
+  expect_error(
+    parse_metaflow_version("invalid_version", method = "conda"),
+    "Assertion on 'version' failed: Must be TRUE."
+  )
 })
 
 test_that("metaflow_version returns correct version", {
@@ -47,23 +47,38 @@ test_that("check_python_version handles versions correctly", {
 })
 
 test_that("check_system rejects Windows correctly", {
+  local_edition(3)
+  local_reproducible_output(crayon = TRUE)
   withr::local_envvar(R_METAFLOW_TEST_MOCK = "true")
   original_sys_info <- Sys.info
   mockery::stub(check_system, "Sys.info", function() list(sysname = "Windows"))
   withr::defer({
     mockery::stub(check_system, "Sys.info", original_sys_info)
   })
-  expect_error(
-    check_system(),
-    "Metaflow installation is not supported on Windows."
-  )
+  expect_snapshot_error(check_system())
+
   mockery::stub(check_system, "Sys.info", function() list(sysname = "Darwin"))
   expect_silent(check_system())
-  withr::defer({
-    mockery::stub(check_system, "Sys.info", original_sys_info)
-  })
+
   mockery::stub(check_system, "Sys.info", function() list(sysname = "Linux"))
   expect_silent(check_system())
+})
+
+test_that("prepare_environment handles verbosity correctly", {
+  mockery::stub(prepare_environment, "check_existing_environment", TRUE)
+  mockery::stub(prepare_environment, "reticulate::conda_remove", NULL)
+  mockery::stub(prepare_environment, "reticulate::conda_create", NULL)
+
+  # Test with verbose = TRUE
+  expect_message(
+    prepare_environment(TRUE, "test-env", "conda", "3.8", verbose = TRUE),
+    "Removing existing environment: test-env"
+  )
+
+  # Test with verbose = FALSE (default)
+  expect_silent(
+    prepare_environment(TRUE, "test-env", "conda", "3.8")
+  )
 })
 
 test_that("prepare_environment works correctly", {

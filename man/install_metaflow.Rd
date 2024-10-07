@@ -5,7 +5,7 @@
 \title{Install Metaflow and its dependencies}
 \usage{
 install_metaflow(
-  method = c("auto", "virtualenv", "conda"),
+  method = c("virtualenv", "conda", "auto"),
   conda = "auto",
   version = "default",
   envname = "r-metaflow",
