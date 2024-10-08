@@ -1,111 +1,27 @@
 #' Get Active Metaflow Profile
 #'
-#' Retrieve and display information about the currently active Metaflow profile.
+#' This function retrieves the name or data of the currently active Metaflow profile.
 #'
-#' @param return_data Logical value indicating whether to return the profile data as a data frame.
-#' @return If `return_data` is `TRUE`, a data frame with the profile details is returned.
-#'   Otherwise, `NULL` is returned invisibly after displaying the profile information in the console.
-#' @examples
-#' \dontrun{
-#' # Display the active profile in the console
-#' get_active_metaflow_profile()
-#'
-#' # Get the active profile data as a data frame
-#' profile_data <- get_active_metaflow_profile(return_data = TRUE)
-#' }
-#' @seealso [get_active_profile()]
+#' @param return_data Logical, if TRUE, returns the full profile data. Default is FALSE.
+#' @return If return_data is FALSE (default), returns a string containing the name of the active profile.
+#'         If return_data is TRUE, returns the full profile data.
 #' @export
-get_active_metaflow_profile <- function(return_data = FALSE) {
-  active_profile <- get_active_profile()
-  profile <- active_profile[["profile_name"]]
-  process_metaflow_profile_data(profile, "Active Metaflow Profile", return_data)
-}
-
-#' Get Available Metaflow Profiles
-#'
-#' Retrieve and display a list of all available Metaflow profiles.
-#'
-#' @param return_data Logical value indicating whether to return the profiles data as a data frame.
-#' @return If `return_data` is `TRUE`, a data frame with the profiles is returned.
-#'   Otherwise, `NULL` is returned invisibly after displaying the profiles in the console.
-#' @examples
-#' \dontrun{
-#' # Display all available profiles in the console
-#' get_available_metaflow_profiles()
-#'
-#' # Get the profiles data as a data frame
-#' profiles_data <- get_available_metaflow_profiles(return_data = TRUE)
-#' }
-#' @seealso [get_profiles()]
-#' @export
-get_available_metaflow_profiles <- function(return_data = FALSE) {
-  data <- get_profiles()
-  profiles <- setNames(data, basename(data))
-  process_metaflow_profile_data(profiles, "Available Metaflow Profiles", return_data, "profile", "path")
-}
-
-#' Show Active Metaflow Profile
-#'
-#' Display information about the currently active Metaflow profile in a Shiny app viewer.
-#'
-#' @return The function returns the result of `display_data_generic()`, which launches a Shiny app
-#'   to display the active profile details in the RStudio Viewer pane or an external browser.
-#' @examples
-#' \dontrun{
-#' # Display the active profile in a Shiny app
-#' show_active_metaflow_profile()
-#' }
-#' @seealso [get_active_profile()], [process_metaflow_profile_data()]
-#' @export
-show_active_metaflow_profile <- function() {
-  active_profile <- get_active_profile()
-  profile <- active_profile[["profile_name"]]
-  data_df <- process_metaflow_profile_data(profile, "Active Metaflow Profile", return_data = TRUE)
-  metaflow_profile_viewer(
-    data_df = data_df,
-    shiny_app_func = active_metaflow_profile_app,
-    title = "Active Metaflow Profile",
-    profile = profile,
-    profile_path = active_profile[["profile_path"]]
-  )
-}
-
-#' Show Available Metaflow Profiles
-#'
-#' Display a list of all available Metaflow profiles in a Shiny app viewer.
-#'
-#' @return The function returns the result of `display_data_generic()`, which launches a Shiny app
-#'   to display the list of available profiles in the RStudio Viewer pane or an external browser.
-#' @examples
-#' \dontrun{
-#' # Display all available profiles in a Shiny app
-#' show_available_metaflow_profiles()
-#' }
-#' @seealso [get_profiles()], [process_metaflow_profile_data()]
-#' @export
-show_available_metaflow_profiles <- function() {
-  data <- get_profiles()
-  profiles <- setNames(data, basename(data))
-  data_df <- process_metaflow_profile_data(profiles, "Available Metaflow Profiles", return_data = TRUE, key_col = "profile", value_col = "path")
-  metaflow_profile_viewer(
-    data_df = data_df,
-    shiny_app_func = available_metaflow_profiles_app,
-    title = "Available Metaflow Profiles"
-  )
-}
-
-#' Get the current active Metaflow profile
-#' @keywords internal
-get_active_profile <- function() {
-  list(
-    profile_name = .globals[["mf_profile"]],
-    profile_path = .globals[["mf_profile_path"]]
-  )
+get_active_profile <- function(return_data = FALSE) {
+  profile_path <- .globals[["mf_profile_path"]]
+  return(make_profile_name(profile_path))
 }
 
 #' Get all Metaflow profile configurations
+#'
+#' This function reads all Metaflow profile configurations from the METAFLOW_HOME directory.
+#'
+#' @return A named list of file paths for all Metaflow profile configurations.
+#' @examples
+#' \dontrun{
+#' profiles <- read_all_home_profiles()
+#' }
 #' @keywords internal
-get_profiles <- function() {
+read_all_home_profiles <- function() {
   # Get METAFLOW_HOME environment variable or set to default
   metaflow_home <- Sys.getenv(
     "METAFLOW_HOME",
@@ -134,13 +50,21 @@ get_profiles <- function() {
     ))
   }
 
-  return(config_files)
+  # Convert fs_path to a named list of strings
+  config_list <- as.list(as.character(config_files))
+  names(config_list) <- basename(config_files)
+
+  return(config_list)
 }
 
 #' Read a Metaflow profile configuration file
+#'
+#' This function reads and parses a JSON file containing a Metaflow profile configuration.
+#'
+#' @param path A string specifying the path to the JSON configuration file.
+#' @return A list containing the parsed JSON data.
 #' @keywords internal
-read_profile <- function(path) {
-  checkmate::assert_string(path)
+read_profile_json_file <- function(path) {
   if (!endsWith(path, ".json")) {
     cli::cli_abort("Invalid file extension")
   }
@@ -166,19 +90,29 @@ read_profile <- function(path) {
   )
 }
 
-#' Set the active Metaflow profile
+#' Overwrites the global profile
+#'
+#' This function activates a new profile by overwriting the global profile settings.
+#'
+#' @param path A string specifying the path to the new profile configuration file.
+#' @return Invisibly returns the new profile settings.
 #' @keywords internal
-set_active_profile <- function(path) {
+activate_profile_globals <- function(path) {
   checkmate::assert_string(path)
-  profile <- read_profile(path)
+  profile <- read_profile_json(path)
   .globals[["mf_profile"]] <- profile
   .globals[["mf_profile_path"]] <- path
   invisible(profile)
 }
 
-#' Load the default Metaflow profile
+#' Updates the default Metaflow profile
+#'
+#' This function updates the default Metaflow profile by reading the config.json file
+#' from the METAFLOW_HOME directory and setting it as the active profile.
+#'
+#' @return Invisibly returns the new profile settings, or NULL if no config file was found.
 #' @keywords internal
-load_default_profile <- function() {
+update_profile <- function() {
   # Get METAFLOW_HOME environment variable or set to default
   metaflow_home <- Sys.getenv(
     "METAFLOW_HOME",
@@ -207,31 +141,14 @@ load_default_profile <- function() {
   }
 }
 
-#' Helper function to process and display Metaflow profile data
+#' Create a profile name from a file path
+#'
+#' This function extracts the profile name from a given file path by removing the file extension.
+#'
+#' @param path A string specifying the file path.
+#' @return A string containing the profile name (filename without extension).
 #' @keywords internal
-process_metaflow_profile_data <- function(data, title, return_data = FALSE, key_col = "key", value_col = "value") {
-  if (is.null(data) || length(data) == 0L) {
-    cli::cli_alert_warning(paste("No", tolower(title), "found."))
-    return(invisible(NULL))
-  }
-
-  data_df <- data.frame(
-    key = names(data),
-    value = unlist(data),
-    stringsAsFactors = FALSE,
-    row.names = NULL
-  )
-  names(data_df) <- c(key_col, value_col)
-
-  if (return_data) {
-    names(data_df) <- tolower(names(data_df))
-    return(data_df)
-  }
-
-  cli::cli_h1(title)
-  cli::cli_ul(
-    paste0("{.strong ", data_df[[1L]], "}: ", data_df[[2L]])
-  )
-
-  invisible(NULL)
+make_profile_name <- function(path) {
+  filename_with_ext <- basename(path)
+  return(tools::file_path_sans_ext(filename_with_ext))
 }
