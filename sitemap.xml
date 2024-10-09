@@ -7,9 +7,17 @@
 <url><loc>https://bcgalvin.github.io/metaflow-r/authors.html</loc></url>
 <url><loc>https://bcgalvin.github.io/metaflow-r/index.html</loc></url>
 <url><loc>https://bcgalvin.github.io/metaflow-r/news/index.html</loc></url>
+<url><loc>https://bcgalvin.github.io/metaflow-r/reference/get_active_profile.html</loc></url>
+<url><loc>https://bcgalvin.github.io/metaflow-r/reference/get_metaflow_home.html</loc></url>
 <url><loc>https://bcgalvin.github.io/metaflow-r/reference/index.html</loc></url>
 <url><loc>https://bcgalvin.github.io/metaflow-r/reference/install_metaflow.html</loc></url>
+<url><loc>https://bcgalvin.github.io/metaflow-r/reference/is_valid_metaflow_home.html</loc></url>
+<url><loc>https://bcgalvin.github.io/metaflow-r/reference/list_profiles.html</loc></url>
+<url><loc>https://bcgalvin.github.io/metaflow-r/reference/load_default_profile.html</loc></url>
+<url><loc>https://bcgalvin.github.io/metaflow-r/reference/make_profile_name.html</loc></url>
 <url><loc>https://bcgalvin.github.io/metaflow-r/reference/metaflow.html</loc></url>
-<url><loc>https://bcgalvin.github.io/metaflow-r/reference/mf.html</loc></url>
+<url><loc>https://bcgalvin.github.io/metaflow-r/reference/metaflow_version.html</loc></url>
+<url><loc>https://bcgalvin.github.io/metaflow-r/reference/read_profile_json.html</loc></url>
+<url><loc>https://bcgalvin.github.io/metaflow-r/reference/update_profile.html</loc></url>
 </urlset>
 
