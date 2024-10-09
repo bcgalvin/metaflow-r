@@ -1,81 +1,13 @@
-#' Get Active Metaflow Profile
-#'
-#' This function retrieves the name or data of the currently active Metaflow profile.
-#'
-#' @param return_data Logical, if TRUE, returns the full profile data. Default is FALSE.
-#' @return If return_data is FALSE (default), returns a string containing the name of the active profile.
-#'         If return_data is TRUE, returns the full profile data.
-#' @export
-get_active_profile <- function(return_data = FALSE) {
-  profile_path <- .globals[["mf_profile_path"]]
-  return(make_profile_name(profile_path))
-}
-
-#' Get all Metaflow profile configurations
-#'
-#' This function reads all Metaflow profile configurations from the METAFLOW_HOME directory.
-#'
-#' @return A named list of file paths for all Metaflow profile configurations.
-#' @examples
-#' \dontrun{
-#' profiles <- read_all_home_profiles()
-#' }
-#' @keywords internal
-read_all_home_profiles <- function() {
-  # Get METAFLOW_HOME environment variable or set to default
-  metaflow_home <- Sys.getenv(
-    "METAFLOW_HOME",
-    unset = fs::path_home(".metaflowconfig")
-  )
-  config_dir <- metaflow_home
-
-  # Check if the directory exists
-  if (!fs::dir_exists(config_dir)) {
-    cli::cli_abort(c(
-      "No profiles found in {.file {metaflow_home}}.",
-      i = "Ensure that the directory exists and contains profile",
-      "  configuration files."
-    ))
-  }
-
-  # List all files in the directory
-  all_files <- fs::dir_ls(metaflow_home, type = "file")
-  config_files <- all_files[grepl("^config.*\\.json$", basename(all_files))]
-
-  # Check if any config files are found
-  if (length(config_files) == 0L) {
-    cli::cli_abort(c(
-      "No profiles found in {.file {metaflow_home}}.",
-      i = "Ensure that the directory contains profile configuration files."
-    ))
-  }
-
-  # Convert fs_path to a named list of strings
-  config_list <- as.list(as.character(config_files))
-  names(config_list) <- basename(config_files)
-
-  return(config_list)
-}
-
 #' Read a Metaflow profile configuration file
 #'
-#' This function reads and parses a JSON file containing a Metaflow profile configuration.
-#'
-#' @param path A string specifying the path to the JSON configuration file.
-#' @return A list containing the parsed JSON data.
 #' @keywords internal
 read_profile_json_file <- function(path) {
-  if (!endsWith(path, ".json")) {
-    cli::cli_abort("Invalid file extension")
-  }
-  if (!file.exists(path)) {
-    cli::cli_abort("Config file not found")
-  }
-  # Attempt to read and parse the JSON file
+  checkmate::assert_file(path, extension = "json")
+
   tryCatch(
     {
       config <- jsonlite::read_json(path)
-      return(config)
+      config
     },
     error = function(e) {
       cli::cli_abort(c(
@@ -90,65 +22,127 @@ read_profile_json_file <- function(path) {
   )
 }
 
+#' Check if a provided directory exists and contains valid config files
+#'
+#' @keywords internal
+is_valid_metaflow_home_dir <- function(dir_path) {
+  fs::dir_exists(dir_path) &&
+    length(fs::dir_ls(dir_path, type = "file", glob = "*config*.json")) >= 1L
+}
+
+#' Get Metaflow home directory
+#'
+#' @keywords internal
+get_metaflow_home <- function() {
+  provided_home <- Sys.getenv("METAFLOW_HOME")
+  default_home <- as.character(fs::path_home(".metaflowconfig"))
+
+  home_dirs <- c(provided = provided_home, default = default_home)
+  valid_dirs <- vapply(home_dirs, is_valid_metaflow_home_dir, logical(1L))
+
+  if (valid_dirs[["provided"]]) {
+    return(provided_home)
+  }
+
+  if (provided_home != "" && !valid_dirs[["provided"]]) {
+    cli::cli_warn(c(
+      "!" = "METAFLOW_HOME environment variable is set to {provided_home}, but directory does not exist."
+    ))
+  }
+
+  if (valid_dirs[["default"]]) {
+    return(default_home)
+  }
+
+  cli::cli_warn(c(
+    "!" = "Default metaflow home location {default_home} does not exist on this system or",
+    "does not have valid config files matching the glob pattern `*config*.json`"
+  ))
+  NULL
+}
+
+#' Generate profile name from a file path
+#'
+#' @keywords internal
+make_profile_name <- function(path) {
+  filename <- tools::file_path_sans_ext(basename(path))
+
+  switch(startsWith(filename, "config"),
+    if (filename == "config") "default" else sub("^config_", "", filename),
+    filename
+  )
+}
+
 #' Overwrites the global profile
 #'
-#' This function activates a new profile by overwriting the global profile settings.
-#'
-#' @param path A string specifying the path to the new profile configuration file.
-#' @return Invisibly returns the new profile settings.
 #' @keywords internal
-activate_profile_globals <- function(path) {
+update_profile_globals <- function(path) {
   checkmate::assert_string(path)
-  profile <- read_profile_json(path)
+  profile <- read_profile_json_file(path)
   .globals[["mf_profile"]] <- profile
   .globals[["mf_profile_path"]] <- path
   invisible(profile)
 }
 
-#' Updates the default Metaflow profile
+#' Set the default Metaflow profile
 #'
-#' This function updates the default Metaflow profile by reading the config.json file
-#' from the METAFLOW_HOME directory and setting it as the active profile.
-#'
-#' @return Invisibly returns the new profile settings, or NULL if no config file was found.
 #' @keywords internal
-update_profile <- function() {
-  # Get METAFLOW_HOME environment variable or set to default
-  metaflow_home <- Sys.getenv(
-    "METAFLOW_HOME",
-    unset = fs::path_home(".metaflowconfig")
-  )
-
-  # Define the default config file path using METAFLOW_HOME
+load_default_profile <- function() {
+  metaflow_home <- suppressWarnings(get_metaflow_home())
   default_config_path <- fs::path(metaflow_home, "config.json")
-
-  if (fs::file_exists(default_config_path)) {
-    # Set the active profile using the existing function
-    set_active_profile(default_config_path)
-    # Report success message
-    cli::cli_alert_success(
-      "Loaded default Metaflow profile from {.file {default_config_path}}."
-    )
-    cli::cli_alert_info("Using the default profile.")
-    invisible(.globals[["mf_profile"]])
-  } else {
-    # Report that no existing config was found
-    cli::cli_alert_warning(
-      "No existing Metaflow config found at {.file {default_config_path}}."
-    )
-    cli::cli_alert_info("Metaflow will be configured for local execution.")
-    invisible(NULL)
-  }
+  update_profile_globals(default_config_path)
 }
 
-#' Create a profile name from a file path
+#' List all profiles in Metaflow home directory
 #'
-#' This function extracts the profile name from a given file path by removing the file extension.
-#'
-#' @param path A string specifying the file path.
-#' @return A string containing the profile name (filename without extension).
 #' @keywords internal
-make_profile_name <- function(path) {
-  filename_with_ext <- basename(path)
-  return(tools::file_path_sans_ext(filename_with_ext))
+list_metaflow_home_profiles <- function() {
+  metaflow_home <- get_metaflow_home()
+  if (is.null(metaflow_home)) {
+    return(NULL)
+  }
+  fs::dir_ls(metaflow_home, type = "file", glob = "*config*.json")
+}
+
+#' Get Active Metaflow Profile
+#'
+#' @export
+get_active_profile <- function() {
+  if (is.null(.globals[["mf_profile"]])) {
+    cli::cli_warn(c(
+      "No Metaflow configuration file found",
+      i = "Backend set to run in local mode."
+    ))
+    return(invisible(NULL))
+  }
+  profile_path <- .globals[["mf_profile_path"]]
+  list(
+    name = make_profile_name(profile_path),
+    path = profile_path,
+    values = read_profile_json_file(profile_path)
+  )
+}
+
+#' Get all Metaflow profile configurations
+#'
+#' @keywords internal
+get_all_metaflow_profiles <- function() {
+  metaflow_home <- get_metaflow_home()
+  profile_json_files <- list_metaflow_home_profiles()
+
+  # Check if profiles are found
+  if (is.null(profile_json_files)) {
+    cli::cli_abort(c(
+      "No profiles found in {.file {metaflow_home}}.",
+      i = "Ensure that the directory exists and contains profile configuration files."
+    ))
+  }
+
+  # Convert fs_path to a named list of strings
+  config_list <- as.list(as.character(profile_json_files))
+
+  # Use purrr to iterate through the list and set names using make_profile_name
+  config_list <- purrr::set_names(config_list, purrr::map_chr(config_list, make_profile_name))
+
+  return(config_list)
 }

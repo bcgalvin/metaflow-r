@@ -1,182 +1,84 @@
-test_that("get_active_profile returns the correct value when profile is set", {
-  local_profile(list(name = "test_profile"))
-  .globals[["mf_profile_path"]] <- "path/to/config.json"
-  expect_equal(
-    get_active_profile(),
-    list(
-      profile_name = list(name = "test_profile"),
-      profile_path = "path/to/config.json"
-    )
-  )
+test_config_path <- test_path("config_test.json")
+
+test_that("reads a valid json file and returns its content", {
+  result <- read_profile_json_file(test_config_path)
+
+  expect_snapshot(result)
 })
 
-test_that("get_active_profile returns a list with NULL values when no profile is set", {
-  local_profile(NULL)
-  expect_equal(
-    get_active_profile(),
-    list(
-      profile_name = NULL,
-      profile_path = NULL
-    )
-  )
-})
-
-test_that("get_profiles returns correct file paths or errors appropriately", {
-  setup_profile_mocks()
-
-  # Test successful case
-  mockery::stub(get_profiles, "fs::path_home", function(...) "~")
-  mockery::stub(get_profiles, "fs::dir_exists", TRUE)
-  mockery::stub(get_profiles, "fs::dir_ls", c("~/metaflowconfig/config1.json", "~/metaflowconfig/config2.json"))
-
-  result <- get_profiles()
-  expect_equal(result, c("~/metaflowconfig/config1.json", "~/metaflowconfig/config2.json"))
-
-  # Test when directory doesn't exist
-  mockery::stub(get_profiles, "fs::dir_exists", FALSE)
-  expect_error(get_profiles(), "No profiles found")
-
-  # Test when directory exists but no config files
-  mockery::stub(get_profiles, "fs::dir_exists", TRUE)
-  mockery::stub(get_profiles, "fs::dir_ls", character(0))
-  expect_error(get_profiles(), "No profiles found")
-})
-
-test_that("get_profiles handles directory with no matching files", {
-  mockery::stub(get_profiles, "fs::dir_exists", TRUE)
-  mockery::stub(get_profiles, "fs::dir_ls", character(0))
-  expect_error(get_profiles(), "No profiles found")
-})
-
-test_that("get_profiles correctly filters config files", {
-  mockery::stub(get_profiles, "fs::dir_exists", TRUE)
-  mockery::stub(get_profiles, "fs::dir_ls", function(...) {
-    c(
-      "~/metaflowconfig/config1.json",
-      "~/metaflowconfig/not_config.json",
-      "~/metaflowconfig/config2.json",
-      "~/metaflowconfig/config3.txt"
-    )
+test_that("throws an error if the file does not exist", {
+  expect_snapshot(error = TRUE, {
+    read_profile_json_file("nonexistent.json")
   })
-  expect_equal(get_profiles(), c("~/metaflowconfig/config1.json", "~/metaflowconfig/config2.json"))
 })
 
-test_that("read_profile handles successful read", {
-  setup_profile_mocks()
-
-  # Test successful read
-  mockery::stub(read_profile, "file.exists", TRUE)
-  mockery::stub(read_profile, "jsonlite::read_json", list(key = "value"))
-  expect_equal(read_profile("config.json"), list(key = "value"))
-})
-
-test_that("read_profile handles non-existent file", {
-  setup_profile_mocks()
-
-  # Test non-existent file
-  mockery::stub(read_profile, "file.exists", FALSE)
-  expect_error(read_profile("non_existent.json"), "Config file not found")
-})
-
-test_that("read_profile handles file without .json extension", {
-  setup_profile_mocks()
-
-  # Test file without .json extension
-  expect_error(read_profile("config.txt"), "Invalid file extension")
-})
-
-test_that("read_profile handles invalid JSON", {
-  setup_profile_mocks()
-
-  # Test invalid JSON
-  mockery::stub(read_profile, "file.exists", TRUE)
-  mockery::stub(read_profile, "jsonlite::read_json", function(...) stop("JSON parse error"))
-  expect_error(read_profile("invalid.json"), "Error reading or parsing the JSON file")
-})
-
-test_that("read_profile handles valid JSON content", {
-  mockery::stub(read_profile, "file.exists", TRUE)
-  mockery::stub(read_profile, "jsonlite::read_json", list(key = "value", nested = list(a = 1, b = 2)))
-  expect_equal(read_profile("valid.json"), list(key = "value", nested = list(a = 1, b = 2)))
-})
-
-test_that("read_profile handles invalid JSON content", {
-  mockery::stub(read_profile, "file.exists", TRUE)
-  mockery::stub(read_profile, "jsonlite::read_json", function(...) stop("JSON parse error: invalid token"))
-  expect_error(read_profile("invalid.json"), "Error reading or parsing the JSON file")
-})
-
-test_that("set_active_profile sets the profile correctly", {
-  local_profile()
-  mockery::stub(set_active_profile, "read_profile", list(name = "test_profile"))
-
-  expect_invisible(result <- set_active_profile("path/to/config.json"))
-
-  expect_equal(
-    get_active_profile(),
-    list(
-      profile_name = list(name = "test_profile"),
-      profile_path = "path/to/config.json"
-    )
-  )
-  expect_equal(result, list(name = "test_profile"))
-})
-
-test_that("set_active_profile correctly updates global state", {
-  local_profile()
-  mockery::stub(set_active_profile, "read_profile", list(name = "test_profile"))
-
-  set_active_profile("path/to/config.json")
-
-  expect_equal(
-    get_active_profile(),
-    list(
-      profile_name = list(name = "test_profile"),
-      profile_path = "path/to/config.json"
-    )
-  )
-})
-
-test_that("set_active_profile handles invalid file path", {
-  # Mock read_profile to throw an error
-  mockery::stub(set_active_profile, "read_profile", function(...) stop("Config file not found"))
-
-  # Expect an error when setting an invalid profile
-  expect_error(set_active_profile("invalid/path.json"), "Config file not found")
-})
-
-test_that("load_default_profile loads profile when config file exists", {
-  local_profile() # Ensure global state is cleaned up after the test
-  mockery::stub(load_default_profile, "fs::file_exists", TRUE)
-  mockery::stub(load_default_profile, "set_active_profile", function(path) {
-    .globals[["mf_profile"]] <- list(name = "default_profile")
-    invisible(.globals[["mf_profile"]])
+test_that("get_metaflow_home returns correct directory", {
+  # METAFLOW_HOME is set
+  withr::with_envvar(new = c("METAFLOW_HOME" = "/custom/metaflow/home"), {
+    expect_snapshot(get_metaflow_home())
   })
 
-  local_reproducible_output(crayon = TRUE)
-  expect_snapshot(load_default_profile())
+  # METAFLOW_HOME is not set
+  withr::with_envvar(new = c("METAFLOW_HOME" = NA), {
+    mock_path_home <- function(...) "/mock/home"
+    mockery::stub(get_metaflow_home, "fs::path_home", mock_path_home)
+    mockery::stub(get_metaflow_home, "fs::dir_exists", function(...) TRUE)
+    expect_snapshot(get_metaflow_home())
+  })
 
-  expect_equal(
-    get_active_profile(),
-    list(
-      profile_name = list(name = "default_profile"),
-      profile_path = NULL
-    )
-  )
+  # default directory doesn't exist
+  withr::with_envvar(new = c("METAFLOW_HOME" = NA), {
+    mock_path_home <- function(...) "/nonexistent/home"
+    mockery::stub(get_metaflow_home, "fs::path_home", mock_path_home)
+    mockery::stub(get_metaflow_home, "fs::dir_exists", function(...) FALSE)
+    expect_snapshot(get_metaflow_home())
+  })
 })
 
-test_that("load_default_profile handles missing config file", {
-  local_profile() # Ensure global state is cleaned up after the test
-  mockery::stub(load_default_profile, "fs::file_exists", FALSE)
+test_that("get_active_profile returns the active profile correctly", {
+  withr::local_envvar(METAFLOW_HOME = NA)
 
-  local_reproducible_output(crayon = TRUE)
-  expect_snapshot(load_default_profile())
+  withr::with_environment(new.env(parent = emptyenv()), {
+    test_profile <- read_profile_json_file(test_config_path)
+    .globals[["mf_profile"]] <- test_profile
+    .globals[["mf_profile_path"]] <- test_config_path
+    result <- get_active_profile()
+    expect_equal(result$name, "test")
+    expect_equal(result$path, test_config_path)
+    expect_equal(result$values, test_profile)
+  })
+})
 
-  expect_equal(
-    get_active_profile(),
-    list(
-      profile_name = NULL,
-      profile_path = NULL
-    )
-  )
+test_that("is_valid_metaflow_home_dir correctly validates directory", {
+  # valid directory
+  mockery::stub(is_valid_metaflow_home_dir, "fs::dir_exists", function(...) TRUE)
+  mockery::stub(is_valid_metaflow_home_dir, "fs::dir_ls", function(...) c("config.json", "config_test.json"))
+  expect_true(is_valid_metaflow_home_dir("/valid/path"))
+
+  # invalid directory
+  mockery::stub(is_valid_metaflow_home_dir, "fs::dir_exists", function(...) FALSE)
+  expect_false(is_valid_metaflow_home_dir("/invalid/path"))
+
+  # directory without config files
+  mockery::stub(is_valid_metaflow_home_dir, "fs::dir_exists", function(...) TRUE)
+  mockery::stub(is_valid_metaflow_home_dir, "fs::dir_ls", function(...) character(0))
+  expect_false(is_valid_metaflow_home_dir("/empty/path"))
+})
+
+test_that("list_metaflow_home_profiles returns correct profiles", {
+  mockery::stub(list_metaflow_home_profiles, "get_metaflow_home", function() "/mock/metaflow/home")
+  mockery::stub(list_metaflow_home_profiles, "fs::dir_ls", function(...) c("/mock/metaflow/home/config.json", "/mock/metaflow/home/config_test.json"))
+
+  result <- list_metaflow_home_profiles()
+  expect_equal(length(result), 2)
+  expect_true(all(grepl("^/mock/metaflow/home/config", result)))
+})
+
+test_that("get_all_metaflow_profiles returns correct profile list", {
+  mockery::stub(get_all_metaflow_profiles, "list_metaflow_home_profiles", function() c("/mock/metaflow/home/config.json", "/mock/metaflow/home/config_test.json"))
+
+  result <- get_all_metaflow_profiles()
+  expect_equal(length(result), 2)
+  expect_equal(names(result), c("default", "test"))
+  expect_true(all(grepl("^/mock/metaflow/home/config", unlist(result))))
 })
