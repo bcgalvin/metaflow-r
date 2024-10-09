@@ -43,9 +43,9 @@
 # throws an error if the file does not exist
 
     Code
-      read_profile_json_file("nonexistent.json")
+      read_profile_json("nonexistent.json")
     Condition
-      Error in `read_profile_json_file()`:
+      Error in `read_profile_json()`:
       ! Assertion on 'path' failed: File does not exist: 'nonexistent.json'.
 
 # get_metaflow_home returns correct directory
@@ -79,4 +79,25 @@
       does not have valid config files matching the glob pattern `*config*.json`
     Output
       NULL
+
+# list_profiles returns a tibble with correct profiles
+
+    Code
+      result
+    Output
+      # A tibble: 3 x 2
+        profile_name path                
+        <chr>        <chr>               
+      1 default      config.json         
+      2 personal     config_personal.json
+      3 test         config_test.json    
+
+# list_profiles errors when no profiles are found
+
+    Code
+      list_profiles()
+    Condition
+      Error in `list_profiles()`:
+      ! No profiles found in '<temp_dir>'.
+      i Ensure that the directory exists and contains configuration json files.
 

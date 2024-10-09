@@ -6,6 +6,7 @@ development:
   mode: auto
 
 template:
+  bootstrap: 5
   params:
     bootswatch: cosmo
 
@@ -41,7 +42,7 @@ articles:
 reference:
   - title: "Overview"
     desc: >
-      Pacakge overview and global options
+      Package overview and global options
     contents:
       - metaflow-package
   - title: "Installation"
@@ -49,3 +50,9 @@ reference:
       Installing Metaflow with different options
     contents:
       - install_metaflow
+      - metaflow_version
+  - title: "Metaflow Settings"
+    desc: >
+      Viewing and Setting Metaflow Profiles
+    contents:
+      - get_active_profile

@@ -2,7 +2,9 @@
 
 export(get_active_profile)
 export(install_metaflow)
+export(list_profiles)
 export(metaflow_version)
+export(update_profile)
 importFrom(checkmate,assert_character)
 importFrom(checkmate,assert_directory_exists)
 importFrom(checkmate,assert_file_exists)

@@ -22,7 +22,11 @@ Imports:
     cli (>= 3.0.0),
     withr (>= 3.0.0),
     R6 (>= 2.5.0),
-    yaml (>= 2.3.0)
+    yaml (>= 2.3.0),
+    purrr (>= 1.0.0),
+    jsonlite (>= 1.5),
+    rlang (>= 1.1.0),
+    tibble (>= 2.0.1)
 Suggests: 
     knitr,
     rmarkdown,
