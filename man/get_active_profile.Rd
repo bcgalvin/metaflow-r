@@ -2,11 +2,10 @@
 % Please edit documentation in R/profile.R
 \name{get_active_profile}
 \alias{get_active_profile}
-\title{Get the current active Metaflow profile}
+\title{Get Active Metaflow Profile}
 \usage{
 get_active_profile()
 }
 \description{
-Get the current active Metaflow profile
+Get Active Metaflow Profile
 }
-\keyword{internal}

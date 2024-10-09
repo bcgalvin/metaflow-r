@@ -2,11 +2,11 @@
 % Please edit documentation in R/profile.R
 \name{load_default_profile}
 \alias{load_default_profile}
-\title{Load the default Metaflow profile}
+\title{Set the default Metaflow profile}
 \usage{
 load_default_profile()
 }
 \description{
-Load the default Metaflow profile
+Set the default Metaflow profile
 }
 \keyword{internal}
