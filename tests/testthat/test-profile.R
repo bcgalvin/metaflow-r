@@ -38,28 +38,28 @@ test_that("get_metaflow_home returns correct directory", {
 
 test_that("list_profiles returns a tibble with correct profiles", {
   temp_metaflow_home <- withr::local_tempdir()
-  
+
   # mock get_metaflow_home()
   mockery::stub(list_profiles, "get_metaflow_home", function() temp_metaflow_home)
-  
+
   # mock profile files
   writeLines('{"profile": "default"}', con = fs::path(temp_metaflow_home, "config.json"))
   writeLines('{"profile": "test"}', con = fs::path(temp_metaflow_home, "config_test.json"))
   writeLines('{"profile": "personal"}', con = fs::path(temp_metaflow_home, "config_personal.json"))
-  
+
   result <- list_profiles()
   result$path <- fs::path_file(result$path)
-  
+
   expect_snapshot(result)
 })
 
 test_that("list_profiles errors when no profiles are found", {
   # metaflow_home with no profiles
   temp_metaflow_home <- withr::local_tempdir()
-  
+
   # mock get_metaflow_home()
   mockery::stub(list_profiles, "get_metaflow_home", function() temp_metaflow_home)
-  
+
   expect_snapshot(
     error = TRUE,
     {
@@ -108,10 +108,10 @@ test_that("is_valid_metaflow_home correctly validates directory", {
 test_that("list_profiles returns a tibble with correct profiles (using mocks)", {
   # mock get_metaflow_home to return a fake directory
   mockery::stub(list_profiles, "get_metaflow_home", function() "/fake/metaflow/home")
-  
+
   # mock checkmate::assert_directory_exists to do nothing
   mockery::stub(list_profiles, "checkmate::assert_directory_exists", function(...) TRUE)
-  
+
   # mock fs::dir_ls to return mock file paths
   mockery::stub(list_profiles, "fs::dir_ls", function(...) {
     fs::path(c(
@@ -119,15 +119,17 @@ test_that("list_profiles returns a tibble with correct profiles (using mocks)", 
       "/fake/metaflow/home/config_test.json"
     ))
   })
-  
+
   # mock make_profile_name to return profile names based on file paths
   mockery::stub(list_profiles, "make_profile_name", function(path) {
-    if (grepl("config\\.json$", path)) return("default")
+    if (grepl("config\\.json$", path)) {
+      return("default")
+    }
     sub("config_(.*)\\.json$", "\\1", basename(path))
   })
-  
+
   result <- list_profiles()
-  
+
   expect_s3_class(result, "tbl_df")
   expect_equal(nrow(result), 2)
   expect_equal(ncol(result), 2)
@@ -142,7 +144,7 @@ test_that("list_profiles returns a tibble with correct profiles (using mocks)", 
 test_that("list_profiles handles no profiles found", {
   # temporary directory for metaflow_home
   temp_metaflow_home <- withr::local_tempdir()
-  
+
   # mock get_metaflow_home() to return the temporary directory
   mockery::stub(list_profiles, "get_metaflow_home", function() temp_metaflow_home)
 

@@ -16,7 +16,7 @@ list_profiles <- function() {
   metaflow_home <- get_metaflow_home()
   checkmate::assert_directory_exists(metaflow_home)
   profile_paths <- fs::dir_ls(metaflow_home, type = "file", glob = "*config*.json")
-  
+
   # Check if profiles are found
   if (length(profile_paths) == 0) {
     cli::cli_abort(c(
@@ -24,9 +24,9 @@ list_profiles <- function() {
       i = "Ensure that the directory exists and contains configuration json files."
     ))
   }
-  
+
   profile_names <- purrr::map_chr(profile_paths, make_profile_name)
-  
+
   tibble::tibble(
     profile_name = profile_names,
     path = profile_paths
@@ -132,6 +132,8 @@ make_profile_name <- function(path) {
 #' @keywords internal
 load_default_profile <- function() {
   metaflow_home <- suppressWarnings(get_metaflow_home())
-  default_config_path <- fs::path(metaflow_home, "config.json")
-  update_profile(default_config_path)
+  if (!is.null(metaflow_home)) {
+    default_config_path <- fs::path(metaflow_home, "config.json")
+    update_profile(default_config_path)
+  }
 }
