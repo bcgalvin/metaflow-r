@@ -8,7 +8,7 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 status](https://www.r-pkg.org/badges/version/metaflow)](https://CRAN.R-project.org/package=metaflow)
 <!-- badges: end -->
 
-# <img src="man/figures/logo.png" align="center" width="120" /> metaflow
+# <img src="man/figures/logo.png" align="center" width="100" /> metaflow
 
 Interface to ‘Metaflow’ <https://metaflow.org/>, a framework for
 constructing and managing data science workflows. ‘Metaflow’ implements

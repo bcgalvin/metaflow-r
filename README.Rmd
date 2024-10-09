@@ -28,8 +28,7 @@ knitr::opts_chunk$set(
 <!-- badges: end -->
 
 
-# <img src="man/figures/logo.png" align="center" width="120" /> metaflow 
-
+# <img src="man/figures/logo.png" align="center" width="100" /> metaflow 
 
 Interface to 'Metaflow' <https://metaflow.org/>, a framework for constructing and managing data science workflows. 'Metaflow' implements a unified API for the entire data science project lifecycle, from initial prototyping all the way to production deployment. Key features encompass version control, scalability, and seamless integration with popular cloud orchestration tools. This R package enables data scientists to harness 'Metaflow's' capabilities within their preferred R environment, facilitating efficient development and deployment of data science projects.
 

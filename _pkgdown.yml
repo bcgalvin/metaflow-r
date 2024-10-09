@@ -56,3 +56,5 @@ reference:
       Viewing and Setting Metaflow Profiles
     contents:
       - get_active_profile
+      - list_profiles
+      - update_profile
