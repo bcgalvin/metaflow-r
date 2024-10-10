@@ -2,10 +2,18 @@
 % Please edit documentation in R/profile.R
 \name{update_profile}
 \alias{update_profile}
-\title{Overwrites the global profile}
+\title{Updates the Metaflow profile by name or path}
 \usage{
-update_profile(path)
+update_profile(name = NULL, path = NULL)
+}
+\arguments{
+\item{name}{Optional. A string representing the profile name.}
+
+\item{path}{Optional. A string representing the path to the profile JSON file.}
+}
+\value{
+Invisibly returns the updated profile
 }
 \description{
-Overwrites the global profile
+Updates the Metaflow profile by name or path
 }
