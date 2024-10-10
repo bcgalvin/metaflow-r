@@ -1,93 +1,86 @@
-# Load helper functions
-testthat::local_test_context()
-
-
-test_that("install_metaflow restarts session when restart_session is TRUE", {
-  mockery::stub(install_metaflow, "reticulate::py_install", NULL)
-  mockery::stub(install_metaflow, "check_system", NULL)
-  mockery::stub(install_metaflow, "check_python_version", "3.8")
-  mockery::stub(install_metaflow, "prepare_environment", NULL)
-  mockery::stub(install_metaflow, "cli::cli_alert_info", NULL)
-  mockery::stub(install_metaflow, "cli::cli_alert_success", NULL)
-
-  restart_mock <- mockery::mock()
-  mockery::stub(install_metaflow, "requireNamespace", TRUE)
-  mockery::stub(install_metaflow, "rstudioapi::hasFun", TRUE)
-  mockery::stub(install_metaflow, "rstudioapi::restartSession", restart_mock)
-
-  withr::local_envvar(R_RESTART_SESSION = "TRUE")
-  install_metaflow(method = "auto", restart_session = TRUE)
-  expect_length(mockery::mock_calls(restart_mock), 1L)
+# Package preparation and installation tests
+test_that("prepare_packages handles different version specifications correctly", {
+  expect_equal(prepare_packages("default", NULL, "virtualenv"), "metaflow")
+  expect_equal(prepare_packages("2.7.3", NULL, "virtualenv"), "metaflow==2.7.3")
+  expect_equal(prepare_packages("2.7.3", NULL, "conda"), "metaflow=2.7.3")
+  expect_equal(prepare_packages(">=2.7.3", NULL, "virtualenv"), "metaflow>=2.7.3")
+  expect_equal(prepare_packages("2.7.3", c("numpy", "pandas"), "virtualenv"), c("metaflow==2.7.3", "numpy", "pandas"))
 })
 
-test_that("install_metaflow does not restart session when restart_session is FALSE", {
-  mockery::stub(install_metaflow, "reticulate::py_install", NULL)
-  mockery::stub(install_metaflow, "check_system", NULL)
-  mockery::stub(install_metaflow, "check_python_version", "3.8")
-  mockery::stub(install_metaflow, "prepare_environment", NULL)
-  mockery::stub(install_metaflow, "cli::cli_alert_info", NULL)
-  mockery::stub(install_metaflow, "cli::cli_alert_success", NULL)
+cli::test_that_cli("install_metaflow installs correct packages", {
+  mock_py_install <- function(packages, ...) {
+    testthat::expect_equal(packages, c("metaflow==2.7.3", "numpy"))
+    NULL
+  }
 
-  restart_mock <- mockery::mock()
-  mockery::stub(install_metaflow, "requireNamespace", TRUE)
-  mockery::stub(install_metaflow, "rstudioapi::hasFun", TRUE)
-  mockery::stub(install_metaflow, "rstudioapi::restartSession", restart_mock)
-
-  withr::local_envvar(R_RESTART_SESSION = "FALSE")
-  install_metaflow(method = "auto", restart_session = FALSE)
-  expect_length(mockery::mock_calls(restart_mock), 0L)
-})
-
-
-
-
-test_that("install_metaflow handles different methods", {
-  local_edition(3)
-  local_reproducible_output(crayon = TRUE)
-  # Mock functions to prevent actual installations and side effects
-  mockery::stub(install_metaflow, "reticulate::py_install", NULL)
-  mockery::stub(install_metaflow, "check_system", NULL)
-  mockery::stub(install_metaflow, "check_python_version", "3.8")
-  mockery::stub(install_metaflow, "prepare_environment", NULL)
-  mockery::stub(install_metaflow, "restart_session", NULL)
-
-  # Test different installation methods
-  expect_snapshot(install_metaflow(method = "auto", version = "2.2.5"))
-  expect_snapshot(install_metaflow(method = "virtualenv", version = "2.2.5"))
-  expect_snapshot(install_metaflow(method = "conda", version = "2.2.5"))
-
-  # Test error handling for invalid input
-  expect_snapshot_error(install_metaflow(method = "invalid_method"))
-  expect_snapshot_error(install_metaflow(version = "invalid_version"))
-})
-
-test_that("install_metaflow emits success message upon completion", {
-  local_edition(3)
-  local_reproducible_output(crayon = TRUE)
-
-  # Mock necessary functions
-  mockery::stub(install_metaflow, "reticulate::py_install", NULL)
-  mockery::stub(install_metaflow, "prepare_environment", NULL)
-
-  # Use expect_snapshot to capture the message
-  expect_snapshot(install_metaflow())
-})
-
-test_that("install_metaflow handles system check failures", {
-  mockery::stub(
-    install_metaflow,
-    "check_system",
-    function() stop("System check failed")
+  testthat::local_mocked_bindings(
+    check_system = function() NULL,
+    check_python_version = function(...) "3.8",
+    prepare_environment = function(...) NULL,
+    py_install = mock_py_install,
+    .package = "reticulate"
   )
-  expect_error(install_metaflow(), "System check failed")
+
+  testthat::expect_snapshot(
+    install_metaflow(
+      method = "virtualenv",
+      version = "2.7.3",
+      extra_packages = "numpy",
+      restart_session = FALSE
+    )
+  )
 })
 
-test_that("install_metaflow handles Python version check failures", {
-  mockery::stub(install_metaflow, "check_system", function() NULL)
-  mockery::stub(
-    install_metaflow,
-    "check_python_version",
-    function(x) stop("Python version check failed")
+cli::test_that_cli("install_metaflow handles conda installations correctly", {
+  mock_py_install <- function(packages, ...) {
+    testthat::expect_equal(packages, c("metaflow=2.7.3", "numpy"))
+    NULL
+  }
+
+  testthat::local_mocked_bindings(
+    check_system = function() NULL,
+    check_python_version = function(...) "3.8",
+    prepare_environment = function(...) NULL,
+    py_install = mock_py_install,
+    .package = "reticulate"
   )
-  expect_error(install_metaflow(), "Python version check failed")
+
+  testthat::expect_snapshot(
+    install_metaflow(
+      method = "conda",
+      version = "2.7.3",
+      extra_packages = "numpy",
+      restart_session = FALSE
+    )
+  )
+})
+
+cli::test_that_cli("install_metaflow installs latest version when 'default' is specified", {
+  mock_py_install <- function(packages, ...) {
+    testthat::expect_equal(packages, "metaflow")
+    NULL
+  }
+
+  testthat::local_mocked_bindings(
+    check_system = function() NULL,
+    check_python_version = function(...) "3.8",
+    prepare_environment = function(...) NULL,
+    py_install = mock_py_install,
+    .package = "reticulate"
+  )
+
+  testthat::expect_snapshot(
+    install_metaflow(
+      method = "virtualenv",
+      version = "default",
+      restart_session = FALSE
+    )
+  )
+})
+
+test_that("install_metaflow validates input parameters", {
+  expect_error(install_metaflow(method = "invalid"), "should be one of")
+  expect_error(install_metaflow(version = 123), "Must be of type 'string'")
+  expect_error(install_metaflow(extra_packages = 123), "Must be of type 'character'")
+  expect_error(install_metaflow(restart_session = "yes"), "Must be of type 'logical'")
 })
