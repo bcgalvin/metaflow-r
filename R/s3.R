@@ -14,7 +14,6 @@ S3Client <- R6::R6Class("S3Client",
     #' @param run Optional Metaflow Run object or FlowSpec.
     #' @param s3root Optional character string specifying the S3 root path.
     initialize = function(tmproot = ".", bucket = NULL, prefix = NULL, run = NULL, s3root = NULL) {
-      private$py_s3 <- NULL # Delayed initialization
       private$tmproot <- tmproot
       private$bucket <- bucket
       private$prefix <- prefix
@@ -23,28 +22,36 @@ S3Client <- R6::R6Class("S3Client",
       private$role <- NULL
       private$session_vars <- NULL
       private$client_params <- NULL
+      private$is_connected <- FALSE
     },
 
     #' @description
     #' Connect to the S3 client.
     #' @return Invisible self (for method chaining).
     connect = function() {
-      if (is.null(private$py_s3)) {
+      if (!private$is_connected) {
         mf <- .globals[["mf"]]
-        private$py_s3 <- mf$S3(
-          tmproot = private$tmproot,
-          bucket = private$bucket,
-          prefix = private$prefix,
-          run = private$run,
-          s3root = private$s3root,
-          role = private$role,
-          session_vars = private$session_vars,
-          client_params = private$client_params
+        tryCatch(
+          {
+            private$py_s3 <- mf$S3(
+              tmproot = private$tmproot,
+              bucket = private$bucket,
+              prefix = private$prefix,
+              run = private$run,
+              s3root = private$s3root,
+              role = private$role,
+              session_vars = private$session_vars,
+              client_params = private$client_params
+            )
+            private$is_connected <- TRUE
+          },
+          error = function(e) {
+            cli::cli_abort(c(
+              "Error in connect()",
+              i = "{e$message}"
+            ))
+          }
         )
-        # Update the existing fields, using tryCatch to handle potential errors
-        private$tmproot <- tryCatch(private$py_s3$tmproot, error = function(e) private$tmproot)
-        private$bucket <- tryCatch(private$py_s3$bucket, error = function(e) private$bucket)
-        private$prefix <- tryCatch(private$py_s3$prefix, error = function(e) private$prefix)
       }
       invisible(self)
     },
@@ -81,12 +88,12 @@ S3Client <- R6::R6Class("S3Client",
     #' @param ... Additional arguments passed to print (unused).
     print = function(...) {
       cat("S3Client:\n")
-      cat("  tmproot:", private$tmproot, "\n")
-      cat("  bucket:", private$bucket %||% "NULL", "\n")
-      cat("  prefix:", private$prefix %||% "NULL", "\n")
-      cat("  s3root:", private$s3root %||% "NULL", "\n")
-      cat("  role:", private$role %||% "NULL", "\n")
-      cat("  connected:", !is.null(private$py_s3), "\n")
+      cat("  tmproot:", trimws(private$tmproot %||% "NULL"), "\n")
+      cat("  bucket:", trimws(private$bucket %||% "NULL"), "\n")
+      cat("  prefix:", trimws(private$prefix %||% "NULL"), "\n")
+      cat("  s3root:", trimws(private$s3root %||% "NULL"), "\n")
+      cat("  role:", trimws(private$role %||% "NULL"), "\n")
+      cat("  connected:", private$is_connected, "\n")
       invisible(self)
     }
   ),
@@ -99,7 +106,8 @@ S3Client <- R6::R6Class("S3Client",
     s3root = NULL,
     role = NULL,
     session_vars = NULL,
-    client_params = NULL
+    client_params = NULL,
+    is_connected = FALSE
   )
 )
 
