@@ -41,34 +41,35 @@ check_existing_environment <- function(envname, method) {
 }
 
 #' @keywords internal
-prepare_environment <- function(new_env, envname, method, python_version,
-                                verbose = FALSE) {
-  if (new_env && check_existing_environment(envname, method)) {
-    if (verbose) {
-      cli::cli_inform("Removing existing environment: {envname}")
-    }
+prepare_environment <- function(new_env, envname, python_version, method = c("conda", "virtualenv")) {
+  method <- match.arg(method)
+
+  env_exists <- switch(method,
+    conda = reticulate::condaenv_exists(envname),
+    virtualenv = reticulate::virtualenv_exists(envname)
+  )
+
+  if (new_env && env_exists) {
+    cli::cli_inform("Removing existing environment: {envname}")
+
+    remove_fn <- switch(method,
+      conda = reticulate::conda_remove,
+      virtualenv = function(env) reticulate::virtualenv_remove(env, confirm = FALSE)
+    )
+    remove_fn(envname)
+  }
+
+  if (new_env || !env_exists) {
+    create_fn <- switch(method,
+      conda = function(env, ver) reticulate::conda_create(env, packages = "python", python_version = ver),
+      virtualenv = reticulate::virtualenv_create
+    )
     if (method == "conda") {
-      reticulate::conda_remove(envname)
-      reticulate::conda_create(
-        envname,
-        packages = "python",
-        python_version = python_version
-      )
+      create_fn(envname, python_version)
     } else {
-      reticulate::virtualenv_remove(envname, confirm = FALSE)
-      reticulate::virtualenv_create(envname, python = python_version)
+      create_fn(envname, python = python_version)
     }
-  } else if (new_env) {
-    if (method == "conda") {
-      reticulate::conda_create(
-        envname,
-        packages = "python",
-        python_version = python_version
-      )
-    } else {
-      reticulate::virtualenv_create(envname, python = python_version)
-    }
-  } else if (verbose) {
+  } else {
     cli::cli_inform("Using existing environment: {envname}")
   }
 }
