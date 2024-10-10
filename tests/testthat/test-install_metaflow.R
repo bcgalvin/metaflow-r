@@ -1,4 +1,4 @@
-# Package preparation and installation tests
+# package preparation and installation tests
 test_that("prepare_packages handles different version specifications correctly", {
   expect_equal(prepare_packages("default", NULL, "virtualenv"), "metaflow")
   expect_equal(prepare_packages("2.7.3", NULL, "virtualenv"), "metaflow==2.7.3")
@@ -95,7 +95,7 @@ test_that("install_metaflow validates input parameters", {
   expect_error(install_metaflow(restart_session = "yes"), "Must be of type 'logical'")
 })
 
-# Add new tests for error handling
+# error handling
 cli::test_that_cli("install_metaflow handles unsupported Python version correctly", {
   testthat::local_mocked_bindings(
     check_system = function() NULL,
@@ -141,9 +141,7 @@ cli::test_that_cli("install_metaflow handles package installation errors", {
   )
 })
 
-# Add these tests at the end of the file
-
-# Tests for metaflow_version function
+# metaflow_version
 test_that("metaflow_version returns correct version when Metaflow is available", {
   mock_globals <- new.env()
   mock_globals$mf <- list(`__version__` = "2.7.3")

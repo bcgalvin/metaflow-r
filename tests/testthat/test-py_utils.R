@@ -1,4 +1,4 @@
-# System checks
+# system checks
 test_that("check_system handles Windows correctly", {
   testthat::local_mocked_bindings(
     Sys.info = function() list(sysname = "Windows"),
@@ -17,7 +17,7 @@ test_that("check_system allows non-Windows systems", {
   expect_snapshot(check_system())
 })
 
-# Python version checks
+# python version checks
 test_that("check_python_version handles unsupported Python versions correctly", {
   expect_snapshot(check_python_version("3.7.0"), error = TRUE)
   expect_snapshot(check_python_version("3.6.0"), error = TRUE)
@@ -30,7 +30,6 @@ test_that("check_python_version accepts supported Python versions", {
   expect_snapshot(check_python_version(NULL))
 })
 
-# Environment preparation
 cli::test_that_cli("prepare_environment handles conda environments correctly", {
   testthat::local_mocked_bindings(
     condaenv_exists = function(...) FALSE,
@@ -115,7 +114,7 @@ cli::test_that_cli("prepare_environment uses existing environment correctly", {
   )
 })
 
-# Metaflow availability
+# metaflow availability
 test_that("ensure_metaflow handles METAFLOW_PYTHON correctly", {
   withr::local_envvar(METAFLOW_PYTHON = "/path/to/python")
 
