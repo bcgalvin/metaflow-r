@@ -17,6 +17,9 @@ cli::test_that_cli("install_metaflow installs correct packages", {
     check_system = function() NULL,
     check_python_version = function(...) "3.8",
     prepare_environment = function(...) NULL,
+    .package = "metaflow"
+  )
+  testthat::local_mocked_bindings(
     py_install = mock_py_install,
     .package = "reticulate"
   )
@@ -41,6 +44,9 @@ cli::test_that_cli("install_metaflow handles conda installations correctly", {
     check_system = function() NULL,
     check_python_version = function(...) "3.8",
     prepare_environment = function(...) NULL,
+    .package = "metaflow"
+  )
+  testthat::local_mocked_bindings(
     py_install = mock_py_install,
     .package = "reticulate"
   )
@@ -65,6 +71,10 @@ cli::test_that_cli("install_metaflow installs latest version when 'default' is s
     check_system = function() NULL,
     check_python_version = function(...) "3.8",
     prepare_environment = function(...) NULL,
+    .package = "metaflow"
+  )
+
+  testthat::local_mocked_bindings(
     py_install = mock_py_install,
     .package = "reticulate"
   )
@@ -83,4 +93,50 @@ test_that("install_metaflow validates input parameters", {
   expect_error(install_metaflow(version = 123), "Must be of type 'string'")
   expect_error(install_metaflow(extra_packages = 123), "Must be of type 'character'")
   expect_error(install_metaflow(restart_session = "yes"), "Must be of type 'logical'")
+})
+
+# Add new tests for error handling
+cli::test_that_cli("install_metaflow handles unsupported Python version correctly", {
+  testthat::local_mocked_bindings(
+    check_system = function() NULL,
+    check_python_version = function(...) stop("Unsupported Python version"),
+    .package = "metaflow"
+  )
+
+  expect_snapshot(
+    install_metaflow(method = "virtualenv", version = "2.7.3"),
+    error = TRUE
+  )
+})
+
+cli::test_that_cli("install_metaflow handles environment preparation errors", {
+  testthat::local_mocked_bindings(
+    check_system = function() NULL,
+    check_python_version = function(...) "3.8",
+    prepare_environment = function(...) stop("Failed to prepare environment"),
+    .package = "metaflow"
+  )
+
+  expect_snapshot(
+    install_metaflow(method = "virtualenv", version = "2.7.3"),
+    error = TRUE
+  )
+})
+
+cli::test_that_cli("install_metaflow handles package installation errors", {
+  testthat::local_mocked_bindings(
+    py_install = function(...) stop("Failed to install packages"),
+    .package = "reticulate"
+  )
+  testthat::local_mocked_bindings(
+    check_system = function() NULL,
+    check_python_version = function(...) "3.8",
+    prepare_environment = function(...) NULL,
+    .package = "metaflow"
+  )
+
+  expect_snapshot(
+    install_metaflow(method = "virtualenv", version = "2.7.3"),
+    error = TRUE
+  )
 })
