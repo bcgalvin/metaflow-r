@@ -61,27 +61,48 @@
 </h1>
 </div>
 <p>Interface to ‘Metaflow’ <a href="https://metaflow.org/" class="external-link uri">https://metaflow.org/</a>, a framework for constructing and managing data science workflows. ‘Metaflow’ implements a unified API for the entire data science project lifecycle, from initial prototyping all the way to production deployment. Key features encompass version control, scalability, and seamless integration with popular cloud orchestration tools. This R package enables data scientists to harness ‘Metaflow’s’ capabilities within their preferred R environment, facilitating efficient development and deployment of data science projects.</p>
-<div class="section level2">
-<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
-</h2>
-<p>You can install the development version of metaflow from <a href="https://github.com/bcgalvin/metaflow-r" class="external-link">GitHub</a> with:</p>
+<hr>
+<p>The metaflow package currently offers functionality for managing Metaflow named profiles and provides initial integration with the Metaflow S3 client. Vignettes will soon be available to showcase these features in more detail. ### Profile Management</p>
+<p>The package offers functions to manage Metaflow profiles, allowing you to handle different configurations for your workflows. You can list available profiles, get the active profile, and update the active profile as needed.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"bcgalvin/metaflow-r"</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
-</h2>
+<code class="sourceCode R"><span><span class="co"># List all profiles in Metaflow home directory</span></span>
+<span><span class="fu"><a href="reference/list_profiles.html">list_profiles</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Get Active Metaflow Profile</span></span>
+<span><span class="fu"><a href="reference/get_active_profile.html">get_active_profile</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Update the Metaflow profile by name or path</span></span>
+<span><span class="fu"><a href="reference/update_profile.html">update_profile</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"my_profile"</span><span class="op">)</span></span>
+<span><span class="co"># or</span></span>
+<span><span class="fu"><a href="reference/update_profile.html">update_profile</a></span><span class="op">(</span>path <span class="op">=</span> <span class="st">"/path/to/profile.json"</span><span class="op">)</span></span></code></pre></div>
+<p>We’re also working on exciting enhancements to the profile management experience, particularly for RStudio and Posit Workbench users. Upcoming features will leverage the RStudio API to provide a more interactive interface, allowing users to view and set active profiles directly from the RStudio Viewer pane. This will include a graphical interface for easy profile selection and detailed profile information at a glance, streamlining the management of multiple configurations across different development environments.</p>
+<div class="section level3">
+<h3 id="s3-client">S3 Client<a class="anchor" aria-label="anchor" href="#s3-client"></a>
+</h3>
+<p>For users working with AWS S3, the package includes an S3 client interface. This allows you to interact with S3 directly from your Metaflow workflows, including operations like uploading and downloading files.</p>
+<p>The following examples demonstrate using the R6 class directly:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://metaflow.org/" class="external-link">metaflow</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co"># Create a new S3Client</span></span>
+<span><span class="va">s3_client</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_s3_client.html">create_s3_client</a></span><span class="op">(</span>tmproot <span class="op">=</span> <span class="st">"."</span>, bucket <span class="op">=</span> <span class="st">"my-bucket"</span>, prefix <span class="op">=</span> <span class="st">"my-prefix"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Install Metaflow</span></span>
-<span><span class="fu"><a href="reference/install_metaflow.html">install_metaflow</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co"># Create a new S3Client with a specified AWS role</span></span>
+<span><span class="va">s3_client_with_role</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_s3_client_with_role.html">create_s3_client_with_role</a></span><span class="op">(</span><span class="st">"arn:aws:iam::123456789012:role/S3Access"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Use Metaflow functions</span></span>
-<span><span class="fu"><a href="reference/metaflow.html">metaflow</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="fu">mf</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>For more detailed information, please refer to the package documentation and vignettes.</p>
+<span><span class="co"># Create a new S3Client with specified session variables</span></span>
+<span><span class="va">s3_client_with_session</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_s3_client_with_session.html">create_s3_client_with_session</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>key <span class="op">=</span> <span class="st">"value"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Connect to S3</span></span>
+<span><span class="va">s3_client</span><span class="op">$</span><span class="fu">connect</span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Set AWS role</span></span>
+<span><span class="va">s3_client</span><span class="op">$</span><span class="fu">set_role</span><span class="op">(</span><span class="st">"arn:aws:iam::123456789012:role/S3Access"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Set session variables</span></span>
+<span><span class="va">s3_client</span><span class="op">$</span><span class="fu">set_session_vars</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>key <span class="op">=</span> <span class="st">"value"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Set client parameters</span></span>
+<span><span class="va">s3_client</span><span class="op">$</span><span class="fu">set_client_params</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>region_name <span class="op">=</span> <span class="st">"us-west-2"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Note that these examples represent direct usage of the R6 class, there will be a more idiomatic R interface coming soon..</p>
 </div>
 </div>
 
