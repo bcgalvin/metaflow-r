@@ -1,48 +1,97 @@
+# Helper function to transform snapshot output
+transform_temp_paths <- function(x) {
+  x <- gsub("\\\\", "/", x) # Normalize path separators
+  x <- gsub("/var/folders/[^/]+/[^/]+/[^/]+/[^/]+/", "<temp_dir>/", x)
+  x <- gsub("/tmp/Rtmp[A-Za-z0-9]+/", "<temp_dir>/", x)
+  x <- gsub("file[a-f0-9]+", "<temp_file>", x)
+  x <- gsub("/private/var/", "/var/", x) # Normalize macOS paths
+  x <- gsub("Rtmp[A-Za-z0-9]+", "<temp_dir>", x)
+  x <- gsub("/Users/[^/]+/", "<home_dir>/", x) # Normalize home directory
+  x
+}
+
 test_config_path <- test_path("config_test.json")
 
-# snapshots
+# System checks
 test_that("reads a valid json file and returns its content", {
-  result <- read_profile_json(test_config_path)
-
-  expect_snapshot(result)
+  expect_snapshot(read_profile_json(test_config_path))
 })
 
 test_that("throws an error if the file does not exist", {
-  expect_snapshot(error = TRUE, {
-    read_profile_json("nonexistent.json")
-  })
+  expect_snapshot(read_profile_json("nonexistent.json"), error = TRUE)
 })
 
-test_that("get_metaflow_home returns correct directory", {
-  # METAFLOW_HOME is set
+# Metaflow home directory
+test_that("get_metaflow_home handles various scenarios correctly", {
+  # METAFLOW_HOME is set to a valid directory
   withr::with_envvar(new = c("METAFLOW_HOME" = "/custom/metaflow/home"), {
-    expect_snapshot(get_metaflow_home())
+    testthat::local_mocked_bindings(
+      is_valid_metaflow_home = function(...) TRUE,
+      .package = "metaflow"
+    )
+    expect_snapshot(get_metaflow_home(), transform = transform_temp_paths)
   })
 
-  # METAFLOW_HOME is not set
-  withr::with_envvar(new = c("METAFLOW_HOME" = NA), {
-    mock_path_home <- function(...) "/mock/home"
-    mockery::stub(get_metaflow_home, "fs::path_home", mock_path_home)
-    mockery::stub(get_metaflow_home, "fs::dir_exists", function(...) TRUE)
-    expect_snapshot(get_metaflow_home())
+  # METAFLOW_HOME is set but directory doesn't exist
+  withr::with_envvar(new = c("METAFLOW_HOME" = "/nonexistent/metaflow/home"), {
+    testthat::local_mocked_bindings(
+      path_home = function(...) "/mock/home",
+      .package = "fs"
+    )
+    testthat::local_mocked_bindings(
+      is_valid_metaflow_home = function(path) path == "/mock/home/.metaflowconfig",
+      .package = "metaflow"
+    )
+    expect_snapshot(
+      {
+        withr::with_options(
+          list(warn = 1), # Ensure warnings are printed immediately
+          get_metaflow_home()
+        )
+      },
+      transform = transform_temp_paths
+    )
   })
 
-  # default directory doesn't exist
+  # METAFLOW_HOME is not set, default home is valid
   withr::with_envvar(new = c("METAFLOW_HOME" = NA), {
-    mock_path_home <- function(...) "/nonexistent/home"
-    mockery::stub(get_metaflow_home, "fs::path_home", mock_path_home)
-    mockery::stub(get_metaflow_home, "fs::dir_exists", function(...) FALSE)
-    expect_snapshot(get_metaflow_home())
+    testthat::local_mocked_bindings(
+      path_home = function(...) "/mock/home",
+      is_valid_metaflow_home = function(path) path == "/mock/home/.metaflowconfig",
+      .package = "metaflow"
+    )
+    expect_snapshot(get_metaflow_home(), transform = transform_temp_paths)
+  })
+
+  # METAFLOW_HOME is not set, default home is invalid
+  withr::with_envvar(new = c("METAFLOW_HOME" = NA), {
+    testthat::local_mocked_bindings(
+      path_home = function(...) "/mock/home",
+      is_valid_metaflow_home = function(...) FALSE,
+      .package = "metaflow"
+    )
+    expect_snapshot(
+      {
+        withr::with_options(
+          list(warn = 1), # Ensure warnings are printed immediately
+          get_metaflow_home()
+        )
+      },
+      transform = transform_temp_paths
+    )
   })
 })
 
+# Profile listing
 test_that("list_profiles returns a tibble with correct profiles", {
   temp_metaflow_home <- withr::local_tempdir()
 
-  # mock get_metaflow_home()
-  mockery::stub(list_profiles, "get_metaflow_home", function() temp_metaflow_home)
+  testthat::local_mocked_bindings(
+    get_metaflow_home = function() temp_metaflow_home,
+    .package = "metaflow"
+  )
 
-  # mock profile files
+  # Create mock profile files
   writeLines('{"profile": "default"}', con = fs::path(temp_metaflow_home, "config.json"))
   writeLines('{"profile": "test"}', con = fs::path(temp_metaflow_home, "config_test.json"))
   writeLines('{"profile": "personal"}', con = fs::path(temp_metaflow_home, "config_personal.json"))
@@ -50,31 +99,21 @@ test_that("list_profiles returns a tibble with correct profiles", {
   result <- list_profiles()
   result$path <- fs::path_file(result$path)
 
-  expect_snapshot(result)
+  expect_snapshot(result, transform = transform_temp_paths, variant = "profiles")
 })
 
 test_that("list_profiles errors when no profiles are found", {
-  # metaflow_home with no profiles
   temp_metaflow_home <- withr::local_tempdir()
 
-  # mock get_metaflow_home()
-  mockery::stub(list_profiles, "get_metaflow_home", function() temp_metaflow_home)
-
-  expect_snapshot(
-    error = TRUE,
-    {
-      list_profiles()
-    },
-    transform = function(x) {
-      # to get rid of tmp paths
-      x <- gsub(temp_metaflow_home, "<temp_dir>", x, fixed = TRUE)
-      x <- gsub("\\\\", "/", x)
-      x
-    }
+  testthat::local_mocked_bindings(
+    get_metaflow_home = function() temp_metaflow_home,
+    .package = "metaflow"
   )
+
+  expect_snapshot(list_profiles(), error = TRUE, transform = transform_temp_paths)
 })
 
-# implementation tests
+# Active profile
 test_that("get_active_profile returns the active profile correctly", {
   withr::local_envvar(METAFLOW_HOME = NA)
 
@@ -89,67 +128,42 @@ test_that("get_active_profile returns the active profile correctly", {
   })
 })
 
+# Metaflow home validation
 test_that("is_valid_metaflow_home correctly validates directory", {
-  # valid directory
-  mockery::stub(is_valid_metaflow_home, "fs::dir_exists", function(...) TRUE)
-  mockery::stub(is_valid_metaflow_home, "fs::dir_ls", function(...) c("config.json", "config_test.json"))
+  testthat::local_mocked_bindings(
+    dir_exists = function(...) TRUE,
+    dir_ls = function(...) c("config.json", "config_test.json"),
+    .package = "fs"
+  )
   expect_true(is_valid_metaflow_home("/valid/path"))
 
-  # invalid directory
-  mockery::stub(is_valid_metaflow_home, "fs::dir_exists", function(...) FALSE)
+  testthat::local_mocked_bindings(
+    dir_exists = function(...) FALSE,
+    .package = "fs"
+  )
   expect_false(is_valid_metaflow_home("/invalid/path"))
 
-  # directory without config files
-  mockery::stub(is_valid_metaflow_home, "fs::dir_exists", function(...) TRUE)
-  mockery::stub(is_valid_metaflow_home, "fs::dir_ls", function(...) character(0))
+  testthat::local_mocked_bindings(
+    dir_exists = function(...) TRUE,
+    dir_ls = function(...) character(0),
+    .package = "fs"
+  )
   expect_false(is_valid_metaflow_home("/empty/path"))
 })
 
-test_that("list_profiles returns a tibble with correct profiles (using mocks)", {
-  # mock get_metaflow_home to return a fake directory
-  mockery::stub(list_profiles, "get_metaflow_home", function() "/fake/metaflow/home")
-
-  # mock checkmate::assert_directory_exists to do nothing
-  mockery::stub(list_profiles, "checkmate::assert_directory_exists", function(...) TRUE)
-
-  # mock fs::dir_ls to return mock file paths
-  mockery::stub(list_profiles, "fs::dir_ls", function(...) {
-    fs::path(c(
-      "/fake/metaflow/home/config.json",
-      "/fake/metaflow/home/config_test.json"
-    ))
-  })
-
-  # mock make_profile_name to return profile names based on file paths
-  mockery::stub(list_profiles, "make_profile_name", function(path) {
-    if (grepl("config\\.json$", path)) {
-      return("default")
-    }
-    sub("config_(.*)\\.json$", "\\1", basename(path))
-  })
-
-  result <- list_profiles()
-
-  expect_s3_class(result, "tbl_df")
-  expect_equal(nrow(result), 2)
-  expect_equal(ncol(result), 2)
-  expect_equal(colnames(result), c("profile_name", "path"))
-  expect_equal(result$profile_name, c("default", "test"))
-  expect_equal(as.character(result$path), c(
-    "/fake/metaflow/home/config.json",
-    "/fake/metaflow/home/config_test.json"
-  ))
-})
-
-test_that("list_profiles handles no profiles found", {
-  # temporary directory for metaflow_home
+# Profile updating
+test_that("update_profile handles name and path correctly", {
   temp_metaflow_home <- withr::local_tempdir()
+  test_profile_path <- fs::path(temp_metaflow_home, "config_test.json")
+  writeLines('{"profile": "test"}', con = test_profile_path)
 
-  # mock get_metaflow_home() to return the temporary directory
-  mockery::stub(list_profiles, "get_metaflow_home", function() temp_metaflow_home)
-
-  expect_error(
-    list_profiles(),
-    regex = "No profiles found in"
+  testthat::local_mocked_bindings(
+    get_metaflow_home = function() temp_metaflow_home,
+    .package = "metaflow"
   )
+
+  expect_snapshot(update_profile(name = "test"), transform = transform_temp_paths)
+  expect_snapshot(update_profile(path = test_profile_path), transform = transform_temp_paths)
+  expect_snapshot(update_profile(), error = TRUE)
+  expect_snapshot(update_profile(name = "test", path = test_profile_path), error = TRUE)
 })

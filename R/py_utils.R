@@ -1,4 +1,7 @@
 #' @keywords internal
+`%||%` <- function(l, r) if (is.null(l)) r else l
+
+#' @keywords internal
 as_r_value <- function(x) {
   if (inherits(x, "python.builtin.object")) {
     reticulate::py_to_r(x)

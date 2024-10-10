@@ -1,7 +1,7 @@
 # reads a valid json file and returns its content
 
     Code
-      result
+      read_profile_json(test_config_path)
     Output
       $METAFLOW_BATCH_JOB_QUEUE
       [1] "test-queue"
@@ -48,15 +48,25 @@
       Error in `read_profile_json()`:
       ! Assertion on 'path' failed: File does not exist: 'nonexistent.json'.
 
-# get_metaflow_home returns correct directory
+# get_metaflow_home handles various scenarios correctly
 
     Code
       get_metaflow_home()
+    Output
+      [1] "/custom/metaflow/home"
+
+---
+
+    Code
+      withr::with_options(list(warn = 1), get_metaflow_home())
     Condition
       Warning:
-      ! METAFLOW_HOME environment variable is set to /custom/metaflow/home, but directory does not exist.
+      ! METAFLOW_HOME environment variable is set to /nonexistent/metaflow/home, but directory does not exist.
+      Warning:
+      ! Default metaflow home location /mock/home does not exist on this system or
+      does not have valid config files matching the glob pattern `*config*.json`
     Output
-      [1] "/Users/bryangalvin/.metaflowconfig"
+      NULL
 
 ---
 
@@ -72,25 +82,13 @@
 ---
 
     Code
-      get_metaflow_home()
+      withr::with_options(list(warn = 1), get_metaflow_home())
     Condition
       Warning:
-      ! Default metaflow home location /nonexistent/home does not exist on this system or
+      ! Default metaflow home location /mock/home does not exist on this system or
       does not have valid config files matching the glob pattern `*config*.json`
     Output
       NULL
-
-# list_profiles returns a tibble with correct profiles
-
-    Code
-      result
-    Output
-      # A tibble: 3 x 2
-        profile_name path                
-        <chr>        <chr>               
-      1 default      config.json         
-      2 personal     config_personal.json
-      3 test         config_test.json    
 
 # list_profiles errors when no profiles are found
 
@@ -98,6 +96,32 @@
       list_profiles()
     Condition
       Error in `list_profiles()`:
-      ! No profiles found in '<temp_dir>'.
+      ! No profiles found in '/var/folders/lw/6x90887x30l10v8tslljk_cw0000gn/T//<temp_dir>/<temp_file>'.
       i Ensure that the directory exists and contains configuration json files.
+
+# update_profile handles name and path correctly
+
+    Code
+      update_profile(name = "test")
+
+---
+
+    Code
+      update_profile(path = test_profile_path)
+
+---
+
+    Code
+      update_profile()
+    Condition
+      Error in `update_profile()`:
+      ! Please provide either `name` or `path`.
+
+---
+
+    Code
+      update_profile(name = "test", path = test_profile_path)
+    Condition
+      Error in `update_profile()`:
+      ! Please provide either `name` or `path`, not both.
 

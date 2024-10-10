@@ -1,14 +1,3 @@
-#' Overwrites the global profile
-#'
-#' @export
-update_profile <- function(path) {
-  checkmate::assert_string(path)
-  profile <- read_profile_json(path)
-  .globals[["mf_profile"]] <- profile
-  .globals[["mf_profile_path"]] <- path
-  invisible(profile)
-}
-
 #' List all profiles in Metaflow home directory
 #'
 #' @export
@@ -18,7 +7,7 @@ list_profiles <- function() {
   profile_paths <- fs::dir_ls(metaflow_home, type = "file", glob = "*config*.json")
 
   # Check if profiles are found
-  if (length(profile_paths) == 0) {
+  if (length(profile_paths) == 0L) {
     cli::cli_abort(c(
       "No profiles found in {.file {metaflow_home}}.",
       i = "Ensure that the directory exists and contains configuration json files."
@@ -50,6 +39,48 @@ get_active_profile <- function() {
     path = profile_path,
     values = read_profile_json(profile_path)
   )
+}
+
+#' Updates the Metaflow profile by name or path
+#'
+#' @param name Optional. A string representing the profile name.
+#' @param path Optional. A string representing the path to the profile JSON file.
+#' @return Invisibly returns the updated profile
+#' @export
+update_profile <- function(name = NULL, path = NULL) {
+  if (!is.null(name) && !is.null(path)) {
+    cli::cli_abort("Please provide either `name` or `path`, not both.")
+  }
+  if (is.null(name) && is.null(path)) {
+    cli::cli_abort("Please provide either `name` or `path`.")
+  }
+
+  update_fn <- if (!is.null(name)) update_profile_name else update_profile_path
+  update_fn(name %||% path)
+}
+
+#' Updates the Metaflow profile by path
+#'
+#' @keywords internal
+update_profile_path <- function(path) {
+  checkmate::assert_file(path, extension = "json")
+  profile <- read_profile_json(path)
+  .globals[["mf_profile"]] <- profile
+  .globals[["mf_profile_name"]] <- make_profile_name(path)
+  .globals[["mf_profile_path"]] <- path
+  Sys.setenv(METAFLOW_PROFILE = .globals[["mf_profile_name"]])
+  invisible(profile)
+}
+
+#' Updates the Metaflow profile by name
+#'
+#' @keywords internal
+update_profile_name <- function(name) {
+  checkmate::assert_string(name)
+  profiles <- list_profiles()
+  profile_path <- profiles[["path"]][[which(profiles[["profile_name"]] == name)]]
+  update_profile_path(profile_path)
+  invisible(profile_path)
 }
 
 #' Read a Metaflow profile configuration file
@@ -134,6 +165,6 @@ load_default_profile <- function() {
   metaflow_home <- suppressWarnings(get_metaflow_home())
   if (!is.null(metaflow_home)) {
     default_config_path <- fs::path(metaflow_home, "config.json")
-    update_profile(default_config_path)
+    update_profile_path(default_config_path)
   }
 }

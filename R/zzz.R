@@ -4,6 +4,7 @@
 # Package-level state
 .globals[["mf"]] <- NULL
 .globals[["mf_profile"]] <- NULL
+.globals[["mf_profile_name"]] <- NULL
 .globals[["mf_profile_path"]] <- NULL
 
 .onLoad <- function(libname, pkgname) {

@@ -39,7 +39,7 @@ cli::test_that_cli("prepare_environment handles conda environments correctly", {
   )
 
   testthat::expect_snapshot(prepare_environment(TRUE, "test_env", "3.8", "conda"))
-  
+
   testthat::local_mocked_bindings(
     condaenv_exists = function(...) TRUE,
     conda_remove = function(...) NULL,
@@ -59,7 +59,7 @@ cli::test_that_cli("prepare_environment handles virtualenv environments correctl
   )
 
   testthat::expect_snapshot(prepare_environment(TRUE, "test_env", "3.8", "virtualenv"))
-  
+
   testthat::local_mocked_bindings(
     virtualenv_exists = function(...) TRUE,
     virtualenv_remove = function(...) NULL,
