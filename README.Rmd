@@ -20,8 +20,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-
-
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![CRAN status](https://www.r-pkg.org/badges/version/metaflow)](https://CRAN.R-project.org/package=metaflow)
@@ -32,26 +30,56 @@ knitr::opts_chunk$set(
 
 Interface to 'Metaflow' <https://metaflow.org/>, a framework for constructing and managing data science workflows. 'Metaflow' implements a unified API for the entire data science project lifecycle, from initial prototyping all the way to production deployment. Key features encompass version control, scalability, and seamless integration with popular cloud orchestration tools. This R package enables data scientists to harness 'Metaflow's' capabilities within their preferred R environment, facilitating efficient development and deployment of data science projects.
 
-## Installation
 
-You can install the development version of metaflow from [GitHub](https://github.com/bcgalvin/metaflow-r) with:
+---
 
-``` r
-# install.packages("devtools")
-devtools::install_github("bcgalvin/metaflow-r")
-```
+The metaflow package currently offers functionality for managing Metaflow named profiles and provides initial integration with the Metaflow S3 client. Vignettes will soon be available to showcase these features in more detail.
+### Profile Management
 
-## Usage
+The package offers functions to manage Metaflow profiles, allowing you to handle different configurations for your workflows. You can list available profiles, get the active profile, and update the active profile as needed.
 
 ```r
-library(metaflow)
+# List all profiles in Metaflow home directory
+list_profiles()
 
-# Install Metaflow
-install_metaflow()
+# Get Active Metaflow Profile
+get_active_profile()
 
-# Use Metaflow functions
-metaflow()
-mf()
+# Update the Metaflow profile by name or path
+update_profile(name = "my_profile")
+# or
+update_profile(path = "/path/to/profile.json")
 ```
 
-For more detailed information, please refer to the package documentation and vignettes.
+We're also working on exciting enhancements to the profile management experience, particularly for RStudio and Posit Workbench users. Upcoming features will leverage the RStudio API to provide a more interactive interface, allowing users to view and set active profiles directly from the RStudio Viewer pane. This will include a graphical interface for easy profile selection and detailed profile information at a glance, streamlining the management of multiple configurations across different development environments.
+
+### S3 Client
+
+For users working with AWS S3, the package includes an S3 client interface. This allows you to interact with S3 directly from your Metaflow workflows, including operations like uploading and downloading files.
+
+The following examples demonstrate using the R6 class directly:
+
+```r
+# Create a new S3Client
+s3_client <- create_s3_client(tmproot = ".", bucket = "my-bucket", prefix = "my-prefix")
+
+# Create a new S3Client with a specified AWS role
+s3_client_with_role <- create_s3_client_with_role("arn:aws:iam::123456789012:role/S3Access")
+
+# Create a new S3Client with specified session variables
+s3_client_with_session <- create_s3_client_with_session(list(key = "value"))
+
+# Connect to S3
+s3_client$connect()
+
+# Set AWS role
+s3_client$set_role("arn:aws:iam::123456789012:role/S3Access")
+
+# Set session variables
+s3_client$set_session_vars(list(key = "value"))
+
+# Set client parameters
+s3_client$set_client_params(list(region_name = "us-west-2"))
+```
+
+Note that these examples represent direct usage of the R6 class, there will be a more idiomatic R interface coming soon..

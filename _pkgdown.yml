@@ -58,3 +58,12 @@ reference:
       - get_active_profile
       - list_profiles
       - update_profile
+  - title: "Metaflow S3 Client"
+    desc: >
+      Using the Metaflow S3 Client
+    contents:
+      - "S3Client"
+      - "create_s3_client"
+      - "create_s3_client_with_role"
+      - "create_s3_client_with_session"
+
