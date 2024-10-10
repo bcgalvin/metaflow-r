@@ -140,3 +140,43 @@ cli::test_that_cli("install_metaflow handles package installation errors", {
     error = TRUE
   )
 })
+
+# Add these tests at the end of the file
+
+# Tests for metaflow_version function
+test_that("metaflow_version returns correct version when Metaflow is available", {
+  mock_globals <- new.env()
+  mock_globals$mf <- list(`__version__` = "2.7.3")
+
+  testthat::local_mocked_bindings(
+    .globals = mock_globals,
+    is_metaflow_available = function() TRUE,
+    .package = "metaflow"
+  )
+
+  expect_equal(metaflow_version(), "2.7.3")
+})
+
+test_that("metaflow_version throws error when Metaflow is not available", {
+  testthat::local_mocked_bindings(
+    is_metaflow_available = function() FALSE,
+    .package = "metaflow"
+  )
+
+  expect_error(
+    metaflow_version(),
+    "Metaflow is not available. Please install Metaflow using install_metaflow()."
+  )
+})
+
+cli::test_that_cli("metaflow_version provides informative error message", {
+  testthat::local_mocked_bindings(
+    is_metaflow_available = function() FALSE,
+    .package = "metaflow"
+  )
+
+  expect_snapshot(
+    metaflow_version(),
+    error = TRUE
+  )
+})

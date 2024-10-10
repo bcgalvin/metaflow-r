@@ -186,3 +186,35 @@
       [1m[33mError[39m in `reticulate::py_install()`:[22m
       [33m![39m Failed to install packages
 
+# metaflow_version provides informative error message [plain]
+
+    Code
+      metaflow_version()
+    Condition
+      Error in `metaflow_version()`:
+      ! Metaflow is not available. Please install Metaflow using install_metaflow().
+
+# metaflow_version provides informative error message [ansi]
+
+    Code
+      metaflow_version()
+    Condition
+      [1m[33mError[39m in `metaflow_version()`:[22m
+      [33m![39m Metaflow is not available. Please install Metaflow using install_metaflow().
+
+# metaflow_version provides informative error message [unicode]
+
+    Code
+      metaflow_version()
+    Condition
+      Error in `metaflow_version()`:
+      ! Metaflow is not available. Please install Metaflow using install_metaflow().
+
+# metaflow_version provides informative error message [fancy]
+
+    Code
+      metaflow_version()
+    Condition
+      [1m[33mError[39m in `metaflow_version()`:[22m
+      [33m![39m Metaflow is not available. Please install Metaflow using install_metaflow().
+
