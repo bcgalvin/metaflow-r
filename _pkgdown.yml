@@ -39,6 +39,16 @@ articles:
       Installing Metaflow and using the basic functionality
     contents:
       - install-metaflow
+  - title: "Configuring Metaflow"
+    desc: >
+      Configuring Metaflow profiles and settings
+    contents:
+      - configure-metaflow
+  - title: "Metaflow S3 Client"
+    desc: >
+      Using the Metaflow S3 Client
+    contents:
+      - s3-client
 reference:
   - title: "Overview"
     desc: >

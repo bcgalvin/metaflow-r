@@ -1,0 +1,132 @@
+---
+title: "Metaflow S3 Client"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Metaflow S3 Client}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Introduction
+
+The Metaflow S3 Client provides a convenient interface for interacting with Amazon S3 storage. This vignette focuses on using the S3 client to list objects in S3 buckets.
+
+## Setting up the S3 Client
+
+First, let's create an S3 client:
+
+```{r, eval=FALSE}
+library(metaflow)
+
+# Create a new S3 client
+s3 <- create_s3_client(
+  tmproot = ".",
+  bucket = "my-bucket",
+  prefix = "my-prefix"
+)
+
+# Connect to S3
+s3$connect()
+```
+
+The `create_s3_client` function initializes a new S3 client. You can specify the temporary root directory, bucket name, and prefix. The `connect()` method establishes the connection to S3.
+
+### Customizing S3 Client Configuration
+
+```{r, eval=FALSE}
+# Set AWS role
+s3$set_role("arn:aws:iam::123456789012:role/my-role")
+
+# Set session variables
+s3$set_session_vars(list(var1 = "value1", var2 = "value2"))
+
+# Set client parameters
+s3$set_client_params(list(param1 = "value1", param2 = "value2"))
+```
+
+
+## Listing Objects with list_paths
+
+The `list_paths` method allows you to list objects at a specific S3 path. It returns a list of `S3Object` representations.
+
+```{r, eval=FALSE}
+# List objects in the root of the S3 path
+root_objects <- s3$list_paths()
+
+# List objects with specific keys
+specific_objects <- s3$list_paths(c("path1", "path2"))
+
+# Print the results
+print(root_objects)
+print(specific_objects)
+```
+
+## Recursive Listing with list_recursive
+
+The `list_recursive` method allows you to list all objects under given prefixes, including those in subfolders.
+
+```{r, eval=FALSE}
+# List all objects recursively
+all_objects <- s3$list_recursive()
+
+# List objects recursively from specific prefixes
+specific_recursive <- s3$list_recursive(c("prefix1", "prefix2"))
+
+# Print the results
+print(all_objects)
+print(specific_recursive)
+```
+
+## Working with S3Objects
+
+Both `list_paths` and `list_recursive` return lists of `S3Object` instances. Each `S3Object` has the following properties:
+
+- `exists`: Logical indicating if the object exists in S3
+- `url`: The S3 URL of the object
+- `prefix`: The prefix requested that matches this object
+- `key`: The key corresponding to this object
+- `size`: The size of the object in bytes
+- `has_info`: Logical indicating if the object contains additional metadata
+- `metadata`: A list of user-defined metadata (if any)
+- `content_type`: The content type of the S3 object
+- `last_modified`: The last modified timestamp
+- `encryption`: The server-side encryption type (if set)
+
+You can access these properties for each object using `purrr` functions:
+
+```{r, eval=FALSE}
+library(purrr)
+
+# Print key, size, last_modified, and URL for each object
+root_objects %>%
+  walk(~ cat(
+    "Key:", .$key, "\n",
+    "Size:", .$size, "bytes\n",
+    "Last Modified:", .$last_modified, "\n",
+    "URL:", .$url, "\n\n"
+  ))
+
+# Extract specific information from all objects
+keys <- map_chr(root_objects, "key")
+sizes <- map_dbl(root_objects, "size")
+last_modified_times <- map_dbl(root_objects, "last_modified")
+
+# Create a data frame of object information
+object_info <- root_objects %>%
+  map_dfr(~ list(
+    key = .$key,
+    size = .$size,
+    last_modified = .$last_modified,
+    url = .$url
+  ))
+
+print(object_info)
+```
+

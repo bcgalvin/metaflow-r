@@ -1,0 +1,109 @@
+---
+title: "Configuring Metaflow"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Configuring Metaflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Introduction
+
+This vignette guides you through the process of configuring Metaflow using the R package. Metaflow uses configuration profiles to manage different settings for various environments or use cases. This document will explain how to list, view, and update these profiles, as well as provide context on Metaflow configuration.
+
+## Metaflow Configuration Overview
+
+Metaflow configuration is managed through JSON files, typically located in the `~/.metaflowconfig/` directory. These configuration files allow you to customize various aspects of Metaflow's behavior, including:
+
+- Execution environment (local, AWS, Kubernetes)
+- Data store settings
+- Metadata service configuration
+- Monitoring and logging preferences
+
+The configuration is hierarchical, with values defined at a more specific level overriding more general settings.
+
+## Listing Profiles
+
+To view all available Metaflow profiles, use the `list_profiles()` function:
+
+```{r, eval=FALSE}
+library(metaflow)
+list_profiles()
+```
+
+This function returns a tibble with two columns:
+- `profile_name`: The name of the profile
+- `path`: The full path to the profile's JSON configuration file
+
+## Viewing the Active Profile
+
+To see which profile is currently active and its contents, use the `get_active_profile()` function:
+
+```{r, eval=FALSE}
+get_active_profile()
+```
+
+This function returns a list with three elements:
+- `name`: The name of the active profile
+- `path`: The full path to the active profile's JSON configuration file
+- `values`: The contents of the profile as a list
+
+If no profile is active, a warning will be displayed, and the function will return `NULL`.
+
+## Updating the Active Profile
+
+To change the active profile, use the `update_profile()` function. You can update by name or by path:
+
+```{r, eval=FALSE}
+# Update by name
+update_profile(name = "aws")
+
+# Update by path
+update_profile(path = "~/.metaflowconfig/config_aws.json")
+```
+
+This function will update the active profile and return the contents of the new profile invisibly.
+
+## Working with Metaflow Home Directory
+
+Metaflow uses a home directory to store configuration files. By default, this is `~/.metaflowconfig/`, but it can be overridden using the `METAFLOW_HOME` environment variable.
+
+To get the current Metaflow home directory:
+
+```{r, eval=FALSE}
+metaflow:::get_metaflow_home()
+```
+
+This function will return the path to the Metaflow home directory, or `NULL` if no valid directory is found.
+
+## Configuration Hierarchy
+
+Metaflow configuration follows a hierarchical structure:
+
+1. Built-in defaults
+2. `~/.metaflowconfig/config.json`
+3. `~/.metaflowconfig/config_<PROFILE>.json`
+4. Environment variables
+5. Command line arguments
+
+Each level overrides the previous ones, allowing for flexible configuration management.
+
+--- 
+These functions provide a comprehensive way to manage Metaflow configurations in R. By using these tools, you can easily switch between different Metaflow setups for various environments or projects.
+
+For more detailed information on each function, you can use the R help system:
+
+```{r, eval=FALSE}
+?list_profiles
+?get_active_profile
+?update_profile
+```
+
+Remember that proper configuration is crucial for Metaflow to work correctly in different environments. Always ensure that your active profile matches your current needs and environment setup.
