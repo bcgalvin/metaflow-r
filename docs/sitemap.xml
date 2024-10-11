@@ -7,7 +7,9 @@
 <url><loc>https://bcgalvin.github.io/metaflow-r/authors.html</loc></url>
 <url><loc>https://bcgalvin.github.io/metaflow-r/index.html</loc></url>
 <url><loc>https://bcgalvin.github.io/metaflow-r/news/index.html</loc></url>
+<url><loc>https://bcgalvin.github.io/metaflow-r/reference/S3.html</loc></url>
 <url><loc>https://bcgalvin.github.io/metaflow-r/reference/S3Client.html</loc></url>
+<url><loc>https://bcgalvin.github.io/metaflow-r/reference/S3Object.html</loc></url>
 <url><loc>https://bcgalvin.github.io/metaflow-r/reference/active_metaflow_profile_app.html</loc></url>
 <url><loc>https://bcgalvin.github.io/metaflow-r/reference/available_metaflow_profiles_app.html</loc></url>
 <url><loc>https://bcgalvin.github.io/metaflow-r/reference/available_metaflow_profiles_server.html</loc></url>
@@ -23,6 +25,7 @@
 <url><loc>https://bcgalvin.github.io/metaflow-r/reference/get_custom_styles.html</loc></url>
 <url><loc>https://bcgalvin.github.io/metaflow-r/reference/get_metaflow_home.html</loc></url>
 <url><loc>https://bcgalvin.github.io/metaflow-r/reference/get_profile_descriptions.html</loc></url>
+<url><loc>https://bcgalvin.github.io/metaflow-r/reference/get_s3_client.html</loc></url>
 <url><loc>https://bcgalvin.github.io/metaflow-r/reference/handle_set_active_profile.html</loc></url>
 <url><loc>https://bcgalvin.github.io/metaflow-r/reference/index.html</loc></url>
 <url><loc>https://bcgalvin.github.io/metaflow-r/reference/install_metaflow.html</loc></url>

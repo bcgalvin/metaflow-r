@@ -2,24 +2,19 @@
 % Please edit documentation in R/s3.R
 \name{S3Client}
 \alias{S3Client}
-\title{S3Client}
+\title{S3Client Class}
 \description{
-S3Client
-
-S3Client
-}
-\details{
-An R6 interface to Metaflow's S3 client.
+An R6 class that manages the S3 client for AWS authentication and access.
 }
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-S3Client-new}{\code{S3Client$new()}}
-\item \href{#method-S3Client-connect}{\code{S3Client$connect()}}
+\item \href{#method-S3Client-client}{\code{S3Client$client()}}
+\item \href{#method-S3Client-error}{\code{S3Client$error()}}
 \item \href{#method-S3Client-set_role}{\code{S3Client$set_role()}}
 \item \href{#method-S3Client-set_session_vars}{\code{S3Client$set_session_vars()}}
 \item \href{#method-S3Client-set_client_params}{\code{S3Client$set_client_params()}}
-\item \href{#method-S3Client-print}{\code{S3Client$print()}}
 \item \href{#method-S3Client-clone}{\code{S3Client$clone()}}
 }
 }
@@ -30,41 +25,48 @@ An R6 interface to Metaflow's S3 client.
 Create a new S3Client object.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{S3Client$new(
-  tmproot = ".",
-  bucket = NULL,
-  prefix = NULL,
-  run = NULL,
-  s3root = NULL
+  s3_role_arn = NULL,
+  s3_session_vars = NULL,
+  s3_client_params = NULL
 )}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{tmproot}}{Character string specifying the temporary directory root.}
+\item{\code{s3_role_arn}}{Optional character string specifying the AWS role ARN.}
 
-\item{\code{bucket}}{Optional character string specifying the S3 bucket.}
+\item{\code{s3_session_vars}}{Optional list of session variables.}
 
-\item{\code{prefix}}{Optional character string specifying the S3 prefix.}
-
-\item{\code{run}}{Optional Metaflow Run object or FlowSpec.}
-
-\item{\code{s3root}}{Optional character string specifying the S3 root path.}
+\item{\code{s3_client_params}}{Optional list of client parameters.}
 }
 \if{html}{\out{</div>}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-S3Client-connect"></a>}}
-\if{latex}{\out{\hypertarget{method-S3Client-connect}{}}}
-\subsection{Method \code{connect()}}{
-Connect to the S3 client.
+\if{html}{\out{<a id="method-S3Client-client"></a>}}
+\if{latex}{\out{\hypertarget{method-S3Client-client}{}}}
+\subsection{Method \code{client()}}{
+Get the S3 client.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{S3Client$connect()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{S3Client$client()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
-Invisible self (for method chaining).
+The S3 client object.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-S3Client-error"></a>}}
+\if{latex}{\out{\hypertarget{method-S3Client-error}{}}}
+\subsection{Method \code{error()}}{
+Get the error associated with the S3 client.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{S3Client$error()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+The error object, if any.
 }
 }
 \if{html}{\out{<hr>}}
@@ -83,9 +85,6 @@ Set the AWS role for the S3 client.
 }
 \if{html}{\out{</div>}}
 }
-\subsection{Returns}{
-Invisible self (for method chaining).
-}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-S3Client-set_session_vars"></a>}}
@@ -103,9 +102,6 @@ Set the session variables for the S3 client.
 }
 \if{html}{\out{</div>}}
 }
-\subsection{Returns}{
-Invisible self (for method chaining).
-}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-S3Client-set_client_params"></a>}}
@@ -120,26 +116,6 @@ Set the client parameters for the S3 client.
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{client_params}}{List of client parameters.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Invisible self (for method chaining).
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-S3Client-print"></a>}}
-\if{latex}{\out{\hypertarget{method-S3Client-print}{}}}
-\subsection{Method \code{print()}}{
-Print method for S3Client objects.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{S3Client$print(...)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Additional arguments passed to print (unused).}
 }
 \if{html}{\out{</div>}}
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/s3.R
 \name{create_s3_client}
 \alias{create_s3_client}
-\title{Create a new S3Client}
+\title{Create a new S3 object}
 \usage{
 create_s3_client(
   tmproot = ".",
@@ -12,6 +12,20 @@ create_s3_client(
   s3root = NULL
 )
 }
+\arguments{
+\item{tmproot}{Character string specifying the temporary directory root.}
+
+\item{bucket}{Optional character string specifying the S3 bucket.}
+
+\item{prefix}{Optional character string specifying the S3 prefix.}
+
+\item{run}{Optional Metaflow Run object or FlowSpec.}
+
+\item{s3root}{Optional character string specifying the S3 root path.}
+}
+\value{
+An S3 object
+}
 \description{
-Create a new S3Client
+Create a new S3 object
 }

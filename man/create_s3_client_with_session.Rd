@@ -2,10 +2,18 @@
 % Please edit documentation in R/s3.R
 \name{create_s3_client_with_session}
 \alias{create_s3_client_with_session}
-\title{Create a new S3Client with specified session variables}
+\title{Create a new S3 object with specified session variables}
 \usage{
 create_s3_client_with_session(session_vars, ...)
 }
+\arguments{
+\item{session_vars}{List of session variables.}
+
+\item{...}{Additional arguments passed to create_s3_client}
+}
+\value{
+An S3 object with the specified session variables
+}
 \description{
-Create a new S3Client with specified session variables
+Create a new S3 object with specified session variables
 }

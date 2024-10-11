@@ -2,10 +2,18 @@
 % Please edit documentation in R/s3.R
 \name{create_s3_client_with_role}
 \alias{create_s3_client_with_role}
-\title{Create a new S3Client with a specified AWS role}
+\title{Create a new S3 object with a specified AWS role}
 \usage{
 create_s3_client_with_role(role, ...)
 }
+\arguments{
+\item{role}{Character string specifying the AWS role ARN.}
+
+\item{...}{Additional arguments passed to create_s3_client}
+}
+\value{
+An S3 object with the specified role
+}
 \description{
-Create a new S3Client with a specified AWS role
+Create a new S3 object with a specified AWS role
 }
