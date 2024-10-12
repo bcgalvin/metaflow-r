@@ -200,6 +200,108 @@ set)</li>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">object_info</span><span class="op">)</span></span></code></pre></div>
 </div>
+<div class="section level2">
+<h2 id="getting-objects-from-s3">Getting Objects from S3<a class="anchor" aria-label="anchor" href="#getting-objects-from-s3"></a>
+</h2>
+<p>The S3 client provides several methods for retrieving objects from
+S3.</p>
+<div class="section level3">
+<h3 id="getting-a-single-object">Getting a Single Object<a class="anchor" aria-label="anchor" href="#getting-a-single-object"></a>
+</h3>
+<p>Use the <code>get</code> method to retrieve a single object from
+S3:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Get a single object</span></span>
+<span><span class="va">s3_object</span> <span class="op">&lt;-</span> <span class="va">s3</span><span class="op">$</span><span class="fu">get</span><span class="op">(</span><span class="st">"my_key"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Print the object</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">s3_object</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="getting-multiple-objects">Getting Multiple Objects<a class="anchor" aria-label="anchor" href="#getting-multiple-objects"></a>
+</h3>
+<p>To retrieve multiple objects at once, use the <code>get_many</code>
+method:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Get multiple objects</span></span>
+<span><span class="va">s3_objects</span> <span class="op">&lt;-</span> <span class="va">s3</span><span class="op">$</span><span class="fu">get_many</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"key1"</span>, <span class="st">"key2"</span>, <span class="st">"key3"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Print the objects</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">s3_objects</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="getting-objects-recursively">Getting Objects Recursively<a class="anchor" aria-label="anchor" href="#getting-objects-recursively"></a>
+</h3>
+<p>The <code>get_recursive</code> method allows you to download objects
+recursively from specified keys or prefixes:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Get objects recursively</span></span>
+<span><span class="va">recursive_objects</span> <span class="op">&lt;-</span> <span class="va">s3</span><span class="op">$</span><span class="fu">get_recursive</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"prefix1"</span>, <span class="st">"prefix2"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Print the objects</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">recursive_objects</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="getting-all-objects">Getting All Objects<a class="anchor" aria-label="anchor" href="#getting-all-objects"></a>
+</h3>
+<p>If you want to retrieve all objects under the prefix set in the S3
+constructor, use the <code>get_all</code> method:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Get all objects</span></span>
+<span><span class="va">all_objects</span> <span class="op">&lt;-</span> <span class="va">s3</span><span class="op">$</span><span class="fu">get_all</span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Print the objects</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">all_objects</span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="putting-objects-to-s3">Putting Objects to S3<a class="anchor" aria-label="anchor" href="#putting-objects-to-s3"></a>
+</h2>
+<p>The S3 client also provides methods for uploading objects to S3.</p>
+<div class="section level3">
+<h3 id="putting-a-single-object">Putting a Single Object<a class="anchor" aria-label="anchor" href="#putting-a-single-object"></a>
+</h3>
+<p>Use the <code>put</code> method to upload a single object to S3:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Put a single object</span></span>
+<span><span class="va">url</span> <span class="op">&lt;-</span> <span class="va">s3</span><span class="op">$</span><span class="fu">put</span><span class="op">(</span><span class="st">"my_key"</span>, <span class="st">"My object content"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Print the URL of the stored object</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">url</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="putting-multiple-objects">Putting Multiple Objects<a class="anchor" aria-label="anchor" href="#putting-multiple-objects"></a>
+</h3>
+<p>To upload multiple objects at once, use the <code>put_many</code>
+method:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Put multiple objects</span></span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="va">s3</span><span class="op">$</span><span class="fu">put_many</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>key <span class="op">=</span> <span class="st">"key1"</span>, value <span class="op">=</span> <span class="st">"Content 1"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>key <span class="op">=</span> <span class="st">"key2"</span>, value <span class="op">=</span> <span class="st">"Content 2"</span><span class="op">)</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Print the results</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="putting-files">Putting Files<a class="anchor" aria-label="anchor" href="#putting-files"></a>
+</h3>
+<p>The <code>put_files</code> method allows you to upload multiple files
+to S3:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Put multiple files</span></span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="va">s3</span><span class="op">$</span><span class="fu">put_files</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>key <span class="op">=</span> <span class="st">"key1"</span>, path <span class="op">=</span> <span class="st">"path/to/file1"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>key <span class="op">=</span> <span class="st">"key2"</span>, path <span class="op">=</span> <span class="st">"path/to/file2"</span><span class="op">)</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Print the results</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span></code></pre></div>
+<p>These new methods provide a comprehensive set of tools for both
+retrieving and uploading objects to S3 using the Metaflow S3 client.</p>
+</div>
+</div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
