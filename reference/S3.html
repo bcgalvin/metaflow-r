@@ -56,8 +56,15 @@ It uses the S3Client class internally for AWS authentication and client manageme
 <li><p><a href="#method-S3-set_session_vars"><code>S3$set_session_vars()</code></a></p></li>
 <li><p><a href="#method-S3-set_client_params"><code>S3$set_client_params()</code></a></p></li>
 <li><p><a href="#method-S3-print"><code>S3$print()</code></a></p></li>
+<li><p><a href="#method-S3-get"><code>S3$get()</code></a></p></li>
+<li><p><a href="#method-S3-get_many"><code>S3$get_many()</code></a></p></li>
 <li><p><a href="#method-S3-list_paths"><code>S3$list_paths()</code></a></p></li>
 <li><p><a href="#method-S3-list_recursive"><code>S3$list_recursive()</code></a></p></li>
+<li><p><a href="#method-S3-get_recursive"><code>S3$get_recursive()</code></a></p></li>
+<li><p><a href="#method-S3-get_all"><code>S3$get_all()</code></a></p></li>
+<li><p><a href="#method-S3-put"><code>S3$put()</code></a></p></li>
+<li><p><a href="#method-S3-put_many"><code>S3$put_many()</code></a></p></li>
+<li><p><a href="#method-S3-put_files"><code>S3$put_files()</code></a></p></li>
 <li><p><a href="#method-S3-clone"><code>S3$clone()</code></a></p></li>
 </ul></div><p></p><hr><a id="method-S3-new"></a><div class="section">
 <h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
@@ -195,35 +202,71 @@ It uses the S3Client class internally for AWS authentication and client manageme
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-S3-list_paths"></a><div class="section">
-<h3 id="method-list-paths-">Method <code>list_paths()</code><a class="anchor" aria-label="anchor" href="#method-list-paths-"></a></h3>
-<p>List the next level of paths in S3.</p><div class="section">
+</div><p></p><hr><a id="method-S3-get"></a><div class="section">
+<h3 id="method-get-">Method <code><a href="https://rdrr.io/r/base/get.html" class="external-link">get()</a></code><a class="anchor" aria-label="anchor" href="#method-get-"></a></h3>
+<p>Get a single object from S3</p><div class="section">
 <h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">S3</span><span class="op">$</span><span class="fu">list_paths</span><span class="op">(</span>keys <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">S3</span><span class="op">$</span><span class="fu">get</span><span class="op">(</span>key <span class="op">=</span> <span class="cn">NULL</span>, return_missing <span class="op">=</span> <span class="cn">FALSE</span>, return_info <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>keys</code></dt>
-<dd><p>Optional character vector of keys to list. If NULL, lists from the S3 root.</p></dd>
+<p></p><div class="arguments"><dl><dt><code>key</code></dt>
+<dd><p>Character string or S3GetObject representing the S3 key</p></dd>
+
+
+<dt><code>return_missing</code></dt>
+<dd><p>Logical, if TRUE, return missing keys as S3Objects with exists = FALSE</p></dd>
+
+
+<dt><code>return_info</code></dt>
+<dd><p>Logical, if TRUE, fetch content-type and user metadata</p></dd>
 
 
 </dl><p></p></div>
 </div>
 <div class="section">
 <h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
-<p>A list of <code>S3Object</code> representations.</p>
+<p>An S3Object</p>
 </div>
 
-</div><p></p><hr><a id="method-S3-list_recursive"></a><div class="section">
-<h3 id="method-list-recursive-">Method <code>list_recursive()</code><a class="anchor" aria-label="anchor" href="#method-list-recursive-"></a></h3>
-<p>List all objects recursively under the given prefixes.</p><div class="section">
+</div><p></p><hr><a id="method-S3-get_many"></a><div class="section">
+<h3 id="method-get-many-">Method <code>get_many()</code><a class="anchor" aria-label="anchor" href="#method-get-many-"></a></h3>
+<p>Get multiple objects from S3</p><div class="section">
 <h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">S3</span><span class="op">$</span><span class="fu">list_recursive</span><span class="op">(</span>keys <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">S3</span><span class="op">$</span><span class="fu">get_many</span><span class="op">(</span><span class="va">keys</span>, return_missing <span class="op">=</span> <span class="cn">FALSE</span>, return_info <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>keys</code></dt>
+<dd><p>Character vector or list of S3GetObjects representing the S3 keys</p></dd>
+
+
+<dt><code>return_missing</code></dt>
+<dd><p>Logical, if TRUE, return missing keys as S3Objects with exists = FALSE</p></dd>
+
+
+<dt><code>return_info</code></dt>
+<dd><p>Logical, if TRUE, fetch content-type and user metadata</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<p>A list of S3Objects</p>
+</div>
+
+</div><p></p><hr><a id="method-S3-list_paths"></a><div class="section">
+<h3 id="method-list-paths-">Method <code>list_paths()</code><a class="anchor" aria-label="anchor" href="#method-list-paths-"></a></h3>
+<p>List the next level of paths in S3.</p><div class="section">
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">S3</span><span class="op">$</span><span class="fu">list_paths</span><span class="op">(</span>keys <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>keys</code></dt>
 <dd><p>Optional character vector of keys to list. If NULL, lists from the S3 root.</p></dd>
 
@@ -231,19 +274,167 @@ It uses the S3Client class internally for AWS authentication and client manageme
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
 <p>A list of <code>S3Object</code> representations.</p>
+</div>
+
+</div><p></p><hr><a id="method-S3-list_recursive"></a><div class="section">
+<h3 id="method-list-recursive-">Method <code>list_recursive()</code><a class="anchor" aria-label="anchor" href="#method-list-recursive-"></a></h3>
+<p>List all objects recursively under the given prefixes.</p><div class="section">
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">S3</span><span class="op">$</span><span class="fu">list_recursive</span><span class="op">(</span>keys <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>keys</code></dt>
+<dd><p>Optional character vector of keys to list. If NULL, lists from the S3 root.</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<p>A list of <code>S3Object</code> representations.</p>
+</div>
+
+</div><p></p><hr><a id="method-S3-get_recursive"></a><div class="section">
+<h3 id="method-get-recursive-">Method <code>get_recursive()</code><a class="anchor" aria-label="anchor" href="#method-get-recursive-"></a></h3>
+<p>Get objects from S3 recursively</p><div class="section">
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">S3</span><span class="op">$</span><span class="fu">get_recursive</span><span class="op">(</span><span class="va">keys</span>, return_info <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>keys</code></dt>
+<dd><p>Character vector of keys or prefixes to download recursively</p></dd>
+
+
+<dt><code>return_info</code></dt>
+<dd><p>Logical, if TRUE, fetch content-type and user metadata</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<p>A list of S3Objects</p>
+</div>
+
+</div><p></p><hr><a id="method-S3-get_all"></a><div class="section">
+<h3 id="method-get-all-">Method <code>get_all()</code><a class="anchor" aria-label="anchor" href="#method-get-all-"></a></h3>
+<p>Get all objects under the prefix set in the S3 constructor</p><div class="section">
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">S3</span><span class="op">$</span><span class="fu">get_all</span><span class="op">(</span>return_info <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>return_info</code></dt>
+<dd><p>Logical, if TRUE, fetch content-type and user metadata</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<p>A list of S3Objects</p>
+</div>
+
+</div><p></p><hr><a id="method-S3-put"></a><div class="section">
+<h3 id="method-put-">Method <code>put()</code><a class="anchor" aria-label="anchor" href="#method-put-"></a></h3>
+<p>Put a single object to S3</p><div class="section">
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">S3</span><span class="op">$</span><span class="fu">put</span><span class="op">(</span><span class="va">key</span>, <span class="va">obj</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span>, content_type <span class="op">=</span> <span class="cn">NULL</span>, metadata <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>key</code></dt>
+<dd><p>Character string or S3PutObject representing the S3 key</p></dd>
+
+
+<dt><code>obj</code></dt>
+<dd><p>Object to store in S3</p></dd>
+
+
+<dt><code>overwrite</code></dt>
+<dd><p>Logical, if TRUE, overwrite existing object</p></dd>
+
+
+<dt><code>content_type</code></dt>
+<dd><p>Optional MIME type for the object</p></dd>
+
+
+<dt><code>metadata</code></dt>
+<dd><p>Optional list of metadata to store with the object</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<p>Character string of the URL of the stored object</p>
+</div>
+
+</div><p></p><hr><a id="method-S3-put_many"></a><div class="section">
+<h3 id="method-put-many-">Method <code>put_many()</code><a class="anchor" aria-label="anchor" href="#method-put-many-"></a></h3>
+<p>Put multiple objects to S3</p><div class="section">
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">S3</span><span class="op">$</span><span class="fu">put_many</span><span class="op">(</span><span class="va">key_objs</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>key_objs</code></dt>
+<dd><p>List of key-object pairs or S3PutObjects</p></dd>
+
+
+<dt><code>overwrite</code></dt>
+<dd><p>Logical, if TRUE, overwrite existing objects</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
+<p>List of character vectors, each containing key and URL of stored object</p>
+</div>
+
+</div><p></p><hr><a id="method-S3-put_files"></a><div class="section">
+<h3 id="method-put-files-">Method <code>put_files()</code><a class="anchor" aria-label="anchor" href="#method-put-files-"></a></h3>
+<p>Put multiple files to S3</p><div class="section">
+<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">S3</span><span class="op">$</span><span class="fu">put_files</span><span class="op">(</span><span class="va">key_paths</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>key_paths</code></dt>
+<dd><p>List of key-path pairs or S3PutObjects</p></dd>
+
+
+<dt><code>overwrite</code></dt>
+<dd><p>Logical, if TRUE, overwrite existing objects</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
+<p>List of character vectors, each containing key and URL of stored object</p>
 </div>
 
 </div><p></p><hr><a id="method-S3-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">S3</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
