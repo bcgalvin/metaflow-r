@@ -224,7 +224,9 @@ S3 <- R6::R6Class("S3",
     #' @param prefix Optional character string specifying the S3 prefix.
     #' @param run Optional Metaflow Run object or FlowSpec.
     #' @param s3root Optional character string specifying the S3 root path.
-    initialize = function(tmproot = ".", bucket = NULL, prefix = NULL, run = NULL, s3root = NULL) {
+    #' @param verbose Logical, if TRUE, print detailed error messages.
+    #' @param mf Metaflow object, defaults to .globals[["mf"]].
+    initialize = function(tmproot = ".", bucket = NULL, prefix = NULL, run = NULL, s3root = NULL, verbose = FALSE, mf = .globals[["mf"]]) {
       private$tmproot <- tmproot
       private$bucket <- bucket
       private$prefix <- prefix
@@ -232,6 +234,8 @@ S3 <- R6::R6Class("S3",
       private$s3root <- s3root
       private$s3_client <- S3Client$new()
       private$is_connected <- FALSE
+      private$verbose <- verbose
+      private$mf <- mf
     },
 
     #' @description
@@ -239,10 +243,9 @@ S3 <- R6::R6Class("S3",
     #' @return Invisible self (for method chaining).
     connect = function() {
       if (!private$is_connected) {
-        mf <- .globals[["mf"]]
         tryCatch(
           {
-            private$py_s3 <- mf$S3(
+            private$py_s3 <- private$mf$S3(
               tmproot = private$tmproot,
               bucket = private$bucket,
               prefix = private$prefix,
@@ -253,10 +256,21 @@ S3 <- R6::R6Class("S3",
             private$is_connected <- TRUE
           },
           error = function(e) {
-            cli::cli_abort(c(
-              "Error in connect()",
-              i = "{e$message}"
-            ))
+            private$is_connected <- FALSE # Reset connection status on error
+            error_message <- if (private$verbose) {
+              c(
+                "Error in connect()",
+                i = conditionMessage(e),
+                x = "Stack trace:",
+                trace = capture.output(print(e))
+              )
+            } else {
+              c(
+                "Error in connect()",
+                i = conditionMessage(e)
+              )
+            }
+            cli::cli_abort(error_message)
           }
         )
       }
@@ -352,6 +366,7 @@ S3 <- R6::R6Class("S3",
     }
   ),
   private = list(
+    mf = NULL,
     s3_client = NULL,
     py_s3 = NULL,
     tmproot = NULL,
@@ -360,6 +375,7 @@ S3 <- R6::R6Class("S3",
     run = NULL,
     s3root = NULL,
     is_connected = FALSE,
+    verbose = FALSE,
     convert_s3objects = function(py_objects) {
       if (is.null(py_objects) || length(py_objects) == 0L) {
         return(list())

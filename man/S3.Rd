@@ -28,7 +28,15 @@ It uses the S3Client class internally for AWS authentication and client manageme
 \subsection{Method \code{new()}}{
 Create a new S3 object.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{S3$new(tmproot = ".", bucket = NULL, prefix = NULL, run = NULL, s3root = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{S3$new(
+  tmproot = ".",
+  bucket = NULL,
+  prefix = NULL,
+  run = NULL,
+  s3root = NULL,
+  verbose = FALSE,
+  mf = .globals[["mf"]]
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -43,6 +51,10 @@ Create a new S3 object.
 \item{\code{run}}{Optional Metaflow Run object or FlowSpec.}
 
 \item{\code{s3root}}{Optional character string specifying the S3 root path.}
+
+\item{\code{verbose}}{Logical, if TRUE, print detailed error messages.}
+
+\item{\code{mf}}{Metaflow object, defaults to .globals[\link{"mf"}].}
 }
 \if{html}{\out{</div>}}
 }
