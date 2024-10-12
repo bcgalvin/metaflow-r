@@ -130,3 +130,103 @@ object_info <- root_objects %>%
 print(object_info)
 ```
 
+## Getting Objects from S3
+
+The S3 client provides several methods for retrieving objects from S3.
+
+### Getting a Single Object
+
+Use the `get` method to retrieve a single object from S3:
+
+```{r, eval=FALSE}
+# Get a single object
+s3_object <- s3$get("my_key")
+
+# Print the object
+print(s3_object)
+```
+
+### Getting Multiple Objects
+
+To retrieve multiple objects at once, use the `get_many` method:
+
+```{r, eval=FALSE}
+# Get multiple objects
+s3_objects <- s3$get_many(c("key1", "key2", "key3"))
+
+# Print the objects
+print(s3_objects)
+```
+
+### Getting Objects Recursively
+
+The `get_recursive` method allows you to download objects recursively from specified keys or prefixes:
+
+```{r, eval=FALSE}
+# Get objects recursively
+recursive_objects <- s3$get_recursive(c("prefix1", "prefix2"))
+
+# Print the objects
+print(recursive_objects)
+```
+
+### Getting All Objects
+
+If you want to retrieve all objects under the prefix set in the S3 constructor, use the `get_all` method:
+
+```{r, eval=FALSE}
+# Get all objects
+all_objects <- s3$get_all()
+
+# Print the objects
+print(all_objects)
+```
+
+## Putting Objects to S3
+
+The S3 client also provides methods for uploading objects to S3.
+
+### Putting a Single Object
+
+Use the `put` method to upload a single object to S3:
+
+```{r, eval=FALSE}
+# Put a single object
+url <- s3$put("my_key", "My object content")
+
+# Print the URL of the stored object
+print(url)
+```
+
+### Putting Multiple Objects
+
+To upload multiple objects at once, use the `put_many` method:
+
+```{r, eval=FALSE}
+# Put multiple objects
+results <- s3$put_many(list(
+  list(key = "key1", value = "Content 1"),
+  list(key = "key2", value = "Content 2")
+))
+
+# Print the results
+print(results)
+```
+
+### Putting Files
+
+The `put_files` method allows you to upload multiple files to S3:
+
+```{r, eval=FALSE}
+# Put multiple files
+results <- s3$put_files(list(
+  list(key = "key1", path = "path/to/file1"),
+  list(key = "key2", path = "path/to/file2")
+))
+
+# Print the results
+print(results)
+```
+
+These new methods provide a comprehensive set of tools for both retrieving and uploading objects to S3 using the Metaflow S3 client.
+
