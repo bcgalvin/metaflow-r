@@ -32,13 +32,21 @@ Interface to 'Metaflow' <https://metaflow.org/>, a framework for constructing an
 
 ---
 
-## Features
+## Installation
+
+You can install the development version of metaflow from [GitHub](https://github.com/) with:
+
+```r
+devtools::install_github("bcgalvin/metaflow-r")
+```
+
+## Implemented Features
 
 The metaflow package offers functionality for managing Metaflow named profiles and provides integration with the Metaflow S3 client. Here's an overview of the main features:
 
 ### Profile Management
 
-The package provides functions to manage Metaflow profiles, allowing you to handle different configurations for your workflows.
+The package provides functions to manage Metaflow profiles, allowing you to handle different configurations for your workflows. It respects `METAFLOW_HOME` and `METAFLOW_PROFILE` environment variables.
 
 ```r
 # List all profiles in Metaflow home directory
@@ -55,7 +63,7 @@ update_profile(path = "/path/to/profile.json")
 
 ### S3 Client
 
-For users working with AWS S3, the package includes an S3 client interface. This allows you to interact with S3 directly from your Metaflow workflows.
+The interface for the metaflow S3 client is implemented with R6 classes but there will be a more user-friendly interface built on top soon.
 
 ```r
 # Create a new S3Client
@@ -91,37 +99,3 @@ results <- s3_client$put_files(list(
   list(key = "key2", path = "path/to/file2")
 ))
 ```
-
-## Installation
-
-You can install the development version of metaflow from [GitHub](https://github.com/) with:
-
-```r
-# install.packages("devtools")
-devtools::install_github("Netflix/metaflow-r")
-```
-
-## Getting Started
-
-To get started with metaflow, first load the library:
-
-```r
-library(metaflow)
-```
-
-Then, you can start using the profile management and S3 client features as shown in the examples above.
-
-For more detailed information on using metaflow, please refer to the package vignettes:
-
-```r
-vignette("configure-metaflow", package = "metaflow")
-vignette("s3-client", package = "metaflow")
-```
-
-## Contributing
-
-Contributions to metaflow are welcome! Please refer to the [contribution guidelines](CONTRIBUTING.md) for more information.
-
-## License
-
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.

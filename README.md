@@ -22,15 +22,26 @@ science projects.
 
 ------------------------------------------------------------------------
 
-The metaflow package currently offers functionality for managing
-Metaflow named profiles and provides initial integration with the
-Metaflow S3 client. Vignettes will soon be available to showcase these
-features in more detail. \### Profile Management
+## Installation
 
-The package offers functions to manage Metaflow profiles, allowing you
-to handle different configurations for your workflows. You can list
-available profiles, get the active profile, and update the active
-profile as needed.
+You can install the development version of metaflow from
+[GitHub](https://github.com/) with:
+
+``` r
+devtools::install_github("bcgalvin/metaflow-r")
+```
+
+## Implemented Features
+
+The metaflow package offers functionality for managing Metaflow named
+profiles and provides integration with the Metaflow S3 client. Here’s an
+overview of the main features:
+
+### Profile Management
+
+The package provides functions to manage Metaflow profiles, allowing you
+to handle different configurations for your workflows. It respects
+`METAFLOW_HOME` and `METAFLOW_PROFILE` environment variables.
 
 ``` r
 # List all profiles in Metaflow home directory
@@ -45,46 +56,42 @@ update_profile(name = "my_profile")
 update_profile(path = "/path/to/profile.json")
 ```
 
-We’re also working on exciting enhancements to the profile management
-experience, particularly for RStudio and Posit Workbench users. Upcoming
-features will leverage the RStudio API to provide a more interactive
-interface, allowing users to view and set active profiles directly from
-the RStudio Viewer pane. This will include a graphical interface for
-easy profile selection and detailed profile information at a glance,
-streamlining the management of multiple configurations across different
-development environments.
-
 ### S3 Client
 
-For users working with AWS S3, the package includes an S3 client
-interface. This allows you to interact with S3 directly from your
-Metaflow workflows, including operations like uploading and downloading
-files.
-
-The following examples demonstrate using the R6 class directly:
+The interface for the metaflow S3 client is implemented with R6 classes
+but there will be a more user-friendly interface built on top soon.
 
 ``` r
 # Create a new S3Client
 s3_client <- create_s3_client(tmproot = ".", bucket = "my-bucket", prefix = "my-prefix")
 
-# Create a new S3Client with a specified AWS role
-s3_client_with_role <- create_s3_client_with_role("arn:aws:iam::123456789012:role/S3Access")
-
-# Create a new S3Client with specified session variables
-s3_client_with_session <- create_s3_client_with_session(list(key = "value"))
-
 # Connect to S3
 s3_client$connect()
 
-# Set AWS role
-s3_client$set_role("arn:aws:iam::123456789012:role/S3Access")
+# List objects in the root of the S3 path
+root_objects <- s3_client$list_paths()
 
-# Set session variables
-s3_client$set_session_vars(list(key = "value"))
+# Get a single object
+s3_object <- s3_client$get("my_key")
 
-# Set client parameters
-s3_client$set_client_params(list(region_name = "us-west-2"))
+# Put a single object
+url <- s3_client$put("my_key", "My object content")
+
+# Get multiple objects
+s3_objects <- s3_client$get_many(c("key1", "key2", "key3"))
+
+# Put multiple objects
+results <- s3_client$put_many(list(
+  list(key = "key1", value = "Content 1"),
+  list(key = "key2", value = "Content 2")
+))
+
+# Get objects recursively
+recursive_objects <- s3_client$get_recursive(c("prefix1", "prefix2"))
+
+# Put multiple files
+results <- s3_client$put_files(list(
+  list(key = "key1", path = "path/to/file1"),
+  list(key = "key2", path = "path/to/file2")
+))
 ```
-
-Note that these examples represent direct usage of the R6 class, there
-will be a more idiomatic R interface coming soon..
