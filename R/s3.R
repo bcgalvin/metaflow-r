@@ -318,6 +318,60 @@ S3 <- R6::R6Class("S3",
     },
 
     #' @description
+    #' Get a single object from S3
+    #' @param key Character string or S3GetObject representing the S3 key
+    #' @param return_missing Logical, if TRUE, return missing keys as S3Objects with exists = FALSE
+    #' @param return_info Logical, if TRUE, fetch content-type and user metadata
+    #' @return An S3Object
+    get = function(key = NULL, return_missing = FALSE, return_info = TRUE) {
+      self$connect()
+
+      result <- tryCatch(
+        {
+          py_obj <- private$py_s3$get(key, return_missing, return_info)
+          S3Object$new(py_obj)
+        },
+        error = function(e) {
+          if (inherits(e, "python.builtin.KeyError") && return_missing) {
+            S3Object$new(list(exists = FALSE, key = key))
+          } else {
+            cli::cli_abort(c(
+              "Error in get operation",
+              i = "{e$message}"
+            ))
+          }
+        }
+      )
+
+      result
+    },
+
+    #' @description
+    #' Get multiple objects from S3
+    #' @param keys Character vector or list of S3GetObjects representing the S3 keys
+    #' @param return_missing Logical, if TRUE, return missing keys as S3Objects with exists = FALSE
+    #' @param return_info Logical, if TRUE, fetch content-type and user metadata
+    #' @return A list of S3Objects
+    get_many = function(keys, return_missing = FALSE, return_info = TRUE) {
+      self$connect()
+
+      results <- tryCatch(
+        {
+          py_objs <- private$py_s3$get_many(keys, return_missing, return_info)
+          private$convert_s3objects(py_objs)
+        },
+        error = function(e) {
+          cli::cli_abort(c(
+            "Error in get_many operation",
+            i = "{e$message}"
+          ))
+        }
+      )
+
+      results
+    },
+
+    #' @description
     #' List the next level of paths in S3.
     #' @param keys Optional character vector of keys to list. If NULL, lists from the S3 root.
     #' @return A list of `S3Object` representations.
@@ -363,6 +417,153 @@ S3 <- R6::R6Class("S3",
         }
       )
       private$convert_s3objects(result)
+    },
+
+    #' @description
+    #' Get objects from S3 recursively
+    #' @param keys Character vector of keys or prefixes to download recursively
+    #' @param return_info Logical, if TRUE, fetch content-type and user metadata
+    #' @return A list of S3Objects
+    get_recursive = function(keys, return_info = FALSE) {
+      self$connect()
+      # Convert R vector to Python list if necessary
+      py_keys <- reticulate::r_to_py(keys)
+      results <- tryCatch(
+        {
+          py_objs <- private$py_s3$get_recursive(py_keys, return_info)
+          private$convert_s3objects(py_objs)
+        },
+        error = function(e) {
+          cli::cli_abort(c(
+            "Error in get_recursive operation",
+            i = "{e$message}"
+          ))
+        }
+      )
+      results
+    },
+
+    #' @description
+    #' Get all objects under the prefix set in the S3 constructor
+    #' @param return_info Logical, if TRUE, fetch content-type and user metadata
+    #' @return A list of S3Objects
+    get_all = function(return_info = FALSE) {
+      self$connect()
+
+      if (is.null(private$s3root)) {
+        cli::cli_abort("Can't get_all() when S3 is initialized without a prefix")
+      }
+
+      results <- tryCatch(
+        {
+          py_objs <- private$py_s3$get_all(return_info)
+          private$convert_s3objects(py_objs)
+        },
+        error = function(e) {
+          cli::cli_abort(c(
+            "Error in get_all operation",
+            i = "{e$message}"
+          ))
+        }
+      )
+
+      results
+    },
+
+    #' @description
+    #' Put a single object to S3
+    #' @param key Character string or S3PutObject representing the S3 key
+    #' @param obj Object to store in S3
+    #' @param overwrite Logical, if TRUE, overwrite existing object
+    #' @param content_type Optional MIME type for the object
+    #' @param metadata Optional list of metadata to store with the object
+    #' @return Character string of the URL of the stored object
+    put = function(key, obj, overwrite = TRUE, content_type = NULL, metadata = NULL) {
+      self$connect()
+      result <- tryCatch(
+        {
+          # Convert R object to Python if necessary
+          py_obj <- reticulate::r_to_py(obj)
+          # Call Python put method
+          url <- private$py_s3$put(key, py_obj, overwrite, content_type, metadata)
+          as.character(url)
+        },
+        error = function(e) {
+          cli::cli_abort(c(
+            "Error in put operation",
+            i = "{e$message}"
+          ))
+        }
+      )
+      result
+    },
+
+    #' @description
+    #' Put multiple objects to S3
+    #' @param key_objs List of key-object pairs or S3PutObjects
+    #' @param overwrite Logical, if TRUE, overwrite existing objects
+    #' @return List of character vectors, each containing key and URL of stored object
+    put_many = function(key_objs, overwrite = TRUE) {
+      self$connect()
+      result <- tryCatch(
+        {
+          # Convert R list to Python list of tuples or S3PutObjects
+          py_key_objs <- reticulate::r_to_py(purrr::map(key_objs, function(item) {
+            if (is.list(item) && all(c("key", "value") %in% names(item))) {
+              # It's an S3PutObject-like structure
+              reticulate::dict(key = item$key, value = item$value)
+            } else {
+              # It's a key-value pair
+              reticulate::tuple(item[[1L]], item[[2L]])
+            }
+          }))
+          # Call Python put_many method
+          py_result <- private$py_s3$put_many(py_key_objs, overwrite)
+          # Convert Python result to R
+          purrr::map(py_result, as.list)
+        },
+        error = function(e) {
+          cli::cli_abort(c(
+            "Error in put_many operation",
+            i = "{e$message}"
+          ))
+        }
+      )
+      result
+    },
+
+    #' @description
+    #' Put multiple files to S3
+    #' @param key_paths List of key-path pairs or S3PutObjects
+    #' @param overwrite Logical, if TRUE, overwrite existing objects
+    #' @return List of character vectors, each containing key and URL of stored object
+    put_files = function(key_paths, overwrite = TRUE) {
+      self$connect()
+      result <- tryCatch(
+        {
+          # Convert R list to Python list of tuples or S3PutObjects
+          py_key_paths <- reticulate::r_to_py(purrr::map(key_paths, function(item) {
+            if (is.list(item) && all(c("key", "path") %in% names(item))) {
+              # It's an S3PutObject-like structure
+              reticulate::dict(key = item$key, path = item$path)
+            } else {
+              # It's a key-path pair
+              reticulate::tuple(item[[1L]], item[[2L]])
+            }
+          }))
+          # Call Python put_files method
+          py_result <- private$py_s3$put_files(py_key_paths, overwrite)
+          # Convert Python result to R
+          purrr::map(py_result, as.list)
+        },
+        error = function(e) {
+          cli::cli_abort(c(
+            "Error in put_files operation",
+            i = "{e$message}"
+          ))
+        }
+      )
+      result
     }
   ),
   private = list(

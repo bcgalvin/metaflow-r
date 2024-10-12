@@ -17,8 +17,15 @@ It uses the S3Client class internally for AWS authentication and client manageme
 \item \href{#method-S3-set_session_vars}{\code{S3$set_session_vars()}}
 \item \href{#method-S3-set_client_params}{\code{S3$set_client_params()}}
 \item \href{#method-S3-print}{\code{S3$print()}}
+\item \href{#method-S3-get}{\code{S3$get()}}
+\item \href{#method-S3-get_many}{\code{S3$get_many()}}
 \item \href{#method-S3-list_paths}{\code{S3$list_paths()}}
 \item \href{#method-S3-list_recursive}{\code{S3$list_recursive()}}
+\item \href{#method-S3-get_recursive}{\code{S3$get_recursive()}}
+\item \href{#method-S3-get_all}{\code{S3$get_all()}}
+\item \href{#method-S3-put}{\code{S3$put()}}
+\item \href{#method-S3-put_many}{\code{S3$put_many()}}
+\item \href{#method-S3-put_files}{\code{S3$put_files()}}
 \item \href{#method-S3-clone}{\code{S3$clone()}}
 }
 }
@@ -150,6 +157,54 @@ Print method for S3 objects.
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-S3-get"></a>}}
+\if{latex}{\out{\hypertarget{method-S3-get}{}}}
+\subsection{Method \code{get()}}{
+Get a single object from S3
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{S3$get(key = NULL, return_missing = FALSE, return_info = TRUE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{key}}{Character string or S3GetObject representing the S3 key}
+
+\item{\code{return_missing}}{Logical, if TRUE, return missing keys as S3Objects with exists = FALSE}
+
+\item{\code{return_info}}{Logical, if TRUE, fetch content-type and user metadata}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+An S3Object
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-S3-get_many"></a>}}
+\if{latex}{\out{\hypertarget{method-S3-get_many}{}}}
+\subsection{Method \code{get_many()}}{
+Get multiple objects from S3
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{S3$get_many(keys, return_missing = FALSE, return_info = TRUE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{keys}}{Character vector or list of S3GetObjects representing the S3 keys}
+
+\item{\code{return_missing}}{Logical, if TRUE, return missing keys as S3Objects with exists = FALSE}
+
+\item{\code{return_info}}{Logical, if TRUE, fetch content-type and user metadata}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A list of S3Objects
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-S3-list_paths"></a>}}
 \if{latex}{\out{\hypertarget{method-S3-list_paths}{}}}
 \subsection{Method \code{list_paths()}}{
@@ -187,6 +242,120 @@ List all objects recursively under the given prefixes.
 }
 \subsection{Returns}{
 A list of \code{S3Object} representations.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-S3-get_recursive"></a>}}
+\if{latex}{\out{\hypertarget{method-S3-get_recursive}{}}}
+\subsection{Method \code{get_recursive()}}{
+Get objects from S3 recursively
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{S3$get_recursive(keys, return_info = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{keys}}{Character vector of keys or prefixes to download recursively}
+
+\item{\code{return_info}}{Logical, if TRUE, fetch content-type and user metadata}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A list of S3Objects
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-S3-get_all"></a>}}
+\if{latex}{\out{\hypertarget{method-S3-get_all}{}}}
+\subsection{Method \code{get_all()}}{
+Get all objects under the prefix set in the S3 constructor
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{S3$get_all(return_info = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{return_info}}{Logical, if TRUE, fetch content-type and user metadata}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A list of S3Objects
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-S3-put"></a>}}
+\if{latex}{\out{\hypertarget{method-S3-put}{}}}
+\subsection{Method \code{put()}}{
+Put a single object to S3
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{S3$put(key, obj, overwrite = TRUE, content_type = NULL, metadata = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{key}}{Character string or S3PutObject representing the S3 key}
+
+\item{\code{obj}}{Object to store in S3}
+
+\item{\code{overwrite}}{Logical, if TRUE, overwrite existing object}
+
+\item{\code{content_type}}{Optional MIME type for the object}
+
+\item{\code{metadata}}{Optional list of metadata to store with the object}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Character string of the URL of the stored object
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-S3-put_many"></a>}}
+\if{latex}{\out{\hypertarget{method-S3-put_many}{}}}
+\subsection{Method \code{put_many()}}{
+Put multiple objects to S3
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{S3$put_many(key_objs, overwrite = TRUE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{key_objs}}{List of key-object pairs or S3PutObjects}
+
+\item{\code{overwrite}}{Logical, if TRUE, overwrite existing objects}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+List of character vectors, each containing key and URL of stored object
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-S3-put_files"></a>}}
+\if{latex}{\out{\hypertarget{method-S3-put_files}{}}}
+\subsection{Method \code{put_files()}}{
+Put multiple files to S3
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{S3$put_files(key_paths, overwrite = TRUE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{key_paths}}{List of key-path pairs or S3PutObjects}
+
+\item{\code{overwrite}}{Logical, if TRUE, overwrite existing objects}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+List of character vectors, each containing key and URL of stored object
 }
 }
 \if{html}{\out{<hr>}}
