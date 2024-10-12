@@ -24,8 +24,7 @@ science projects.
 
 ## Installation
 
-You can install the development version of metaflow from
-[GitHub](https://github.com/) with:
+You can install the development version of metaflow from GitHub with:
 
 ``` r
 devtools::install_github("bcgalvin/metaflow-r")
