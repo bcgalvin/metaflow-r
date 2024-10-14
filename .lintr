@@ -6,11 +6,19 @@ linters: all_linters(
   )
 exclusions: list(
     "vignettes/",
+    "R/s3-methods.R" = list(
+      extraction_operator_linter = Inf,
+      line_length_linter = Inf,
+      object_name_linter = Inf,
+      assignment_linter = Inf,
+      cyclocomp_linter = Inf
+    ),
     "R/s3.R" = list(
       extraction_operator_linter = Inf,
       line_length_linter = Inf,
       object_name_linter = Inf,
-      assignment_linter = Inf
+      assignment_linter = Inf,
+      cyclocomp_linter = Inf
     ),
     "tests/testthat/" = list(
       extraction_operator_linter = Inf,
