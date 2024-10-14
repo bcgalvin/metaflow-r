@@ -22,9 +22,9 @@ class MockS3Object:
 mock_obj = MockS3Object()
 ")
 
-# Create a function to get a new s3_object instance for testing
-get_mock_s3_object <- function() {
-  s3_object$new(mock_s3object$mock_obj)
+# Create a function to get a new S3Object instance for testing
+get_mock_S3Object <- function() {
+  S3Object$new(mock_s3object$mock_obj)
 }
 
 # Function to get Python True

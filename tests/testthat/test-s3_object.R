@@ -1,6 +1,6 @@
 test_that("s3_object methods work correctly", {
   # Get a mock s3_object
-  s3obj <- get_mock_s3_object()
+  s3obj <- get_mock_S3Object()
 
   # Test new methods
   expect_equal(s3obj$prefix(), "prefix")
@@ -41,8 +41,8 @@ test_that("s3_object methods work correctly", {
   expect_equal(df$range_request_length, 1000)
 
   # Test as.data.frame.s3_object handles missing range info
-  test_that("as.data.frame.s3_object handles missing range info", {
-    s3obj <- get_mock_s3_object()
+  test_that("as.data.frame.S3Object handles missing range info", {
+    s3obj <- get_mock_S3Object()
     s3obj$py_obj$range_info <- NULL
     df <- as.data.frame(s3obj)
     expect_true(all(is.na(df[c("range_total_size", "range_request_offset", "range_request_length")])))
@@ -77,13 +77,13 @@ test_that("s3_object methods work correctly", {
   expect_false(s3obj$has_info())
 
   test_that("has_info is read-only", {
-    s3obj <- get_mock_s3_object()
+    s3obj <- get_mock_S3Object()
     expect_error(s3obj$py_obj$has_info <- TRUE, "AttributeError")
   })
 
   # Test last_modified returns correct UTC timestamp
   test_that("last_modified returns correct UTC timestamp", {
-    s3obj <- get_mock_s3_object()
+    s3obj <- get_mock_S3Object()
     expected_time <- as.POSIXct("2023-05-01 12:00:00", tz = "UTC")
     expect_equal(s3obj$last_modified(), expected_time)
     expect_equal(attr(s3obj$last_modified(), "tzone"), "UTC")
@@ -91,7 +91,7 @@ test_that("s3_object methods work correctly", {
 
   # Test convert_bool method
   test_that("convert_bool method works correctly", {
-    s3obj <- get_mock_s3_object()
+    s3obj <- get_mock_S3Object()
 
     expect_true(s3obj$convert_bool(TRUE))
     expect_false(s3obj$convert_bool(FALSE))

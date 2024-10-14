@@ -1,14 +1,3 @@
-#' @import reticulate
-#' @importFrom R6 R6Class
-#' @importFrom utils str
-#' @importFrom reticulate py_to_r r_to_py py_call py_len py_str py_bool
-#' @importFrom reticulate py_module_available py_get_item py_set_item py_none
-#' @importFrom reticulate py_is_null_xptr py_capture_output iterate
-#' @importFrom purrr map compact
-#' @importFrom cli cli_abort cli_warn cli_inform
-#'
-NULL
-
 #' R6 Class Wrapper for Metaflow S3 Client
 #'
 #' This class provides an R interface to the Metaflow S3 client functionality.
@@ -38,7 +27,7 @@ S3 <- R6::R6Class(
     #'   an exception
     #' @param return_info If TRUE, fetch content-type and user metadata
     #' @param ... Additional arguments passed to the Python get method
-    #' @return An s3_object
+    #' @return An S3Object
     get = function(key, return_missing = FALSE, return_info = TRUE, ...) {
       py_obj <- self$py_s3$get(
         key,
@@ -49,7 +38,7 @@ S3 <- R6::R6Class(
       if (identical(py_obj, py_none())) {
         return(NULL)
       }
-      s3_object$new(py_to_r(py_obj))
+      S3Object$new(py_to_r(py_obj))
     },
 
     #' @description
@@ -77,14 +66,14 @@ S3 <- R6::R6Class(
     #' @param return_missing If TRUE, return missing objects instead of raising
     #'   exceptions
     #' @param return_info If TRUE, fetch content-type and user metadata
-    #' @return List of s3_object instances
+    #' @return List of S3Object instances
     get_many = function(keys, return_missing = FALSE, return_info = TRUE) {
       py_objs <- self$py_s3$get_many(
         keys,
         return_missing = return_missing,
         return_info = return_info
       )
-      purrr::map(py_objs, s3_object$new)
+      purrr::map(py_objs, S3Object$new)
     },
 
     #' @description
@@ -99,22 +88,22 @@ S3 <- R6::R6Class(
     #' @description
     #' List the next level of paths in S3
     #' @param keys List of paths to list
-    #' @return List of s3_object instances
+    #' @return List of S3Object instances
     list_paths = function(keys = NULL) {
       py_objs <- self$py_s3$list_paths(keys)
-      purrr::map(py_objs, ~ if (reticulate::py_is_null_xptr(.x)) NULL else s3_object$new(.x))
+      purrr::map(py_objs, ~ if (reticulate::py_is_null_xptr(.x)) NULL else S3Object$new(.x))
     },
 
     #' @description
     #' List all objects recursively under the given prefixes
     #' @param keys List of prefixes to list
-    #' @return List of s3_object instances
+    #' @return List of S3Object instances
     list_recursive = function(keys = NULL) {
       py_objs <- self$py_s3$list_recursive(keys)
       if (inherits(py_objs, "python.builtin.iterator")) {
-        result <- reticulate::iterate(py_objs, s3_object$new)
+        result <- reticulate::iterate(py_objs, S3Object$new)
       } else if (is.list(py_objs)) {
-        result <- purrr::map(py_objs, s3_object$new)
+        result <- purrr::map(py_objs, S3Object$new)
       } else {
         cli::cli_abort("Unexpected return type from list_recursive")
       }
@@ -126,7 +115,7 @@ S3 <- R6::R6Class(
     #' @param key Object key
     #' @param return_missing If TRUE, return a missing object instead of raising
     #'   an exception
-    #' @return An s3_object
+    #' @return An S3Object
     info = function(key = NULL, return_missing = FALSE) {
       output <- py_capture_output({
         py_obj <- self$py_s3$info(key, return_missing = return_missing)
@@ -134,7 +123,7 @@ S3 <- R6::R6Class(
       if (nzchar(output)) {
         cli::cli_inform("Python output: {output}")
       }
-      s3_object$new(py_obj)
+      S3Object$new(py_obj)
     },
 
     #' @description
@@ -142,19 +131,19 @@ S3 <- R6::R6Class(
     #' @param keys List of object keys
     #' @param return_missing If TRUE, return missing objects instead of raising
     #'   exceptions
-    #' @return List of s3_object instances
+    #' @return List of S3Object instances
     info_many = function(keys, return_missing = FALSE) {
       py_objs <- self$py_s3$info_many(keys, return_missing = return_missing)
-      purrr::map(py_objs, s3_object$new)
+      purrr::map(py_objs, S3Object$new)
     },
 
     #' @description
     #' Get all objects under the prefix set in the S3 constructor
     #' @param return_info If TRUE, fetch content-type and user metadata
-    #' @return List of s3_object instances
+    #' @return List of S3Object instances
     get_all = function(return_info = FALSE) {
       py_objs <- self$py_s3$get_all(return_info = return_info)
-      purrr::map(py_objs, s3_object$new)
+      purrr::map(py_objs, S3Object$new)
     },
 
     #' @description
@@ -171,8 +160,8 @@ S3 <- R6::R6Class(
 #'
 #' @export
 #' @importFrom utils str
-s3_object <- R6::R6Class(
-  "s3_object",
+S3Object <- R6::R6Class(
+  "S3Object",
   public = list(
     #' @field py_obj Python S3Object
     py_obj = NULL,

@@ -1,14 +1,5 @@
-#' @importFrom purrr map_dfc safely
-#' @importFrom tibble tibble as_tibble
-#' @importFrom cli cli_abort
-NULL
-
-#' Print method for s3_object
-#'
-#' @param x An s3_object
-#' @param ... Additional arguments passed to print
 #' @export
-print.s3_object <- function(x, ...) {
+print.S3Object <- function(x, ...) {
   if (reticulate::py_is_null_xptr(x$py_obj)) {
     cat("S3 Object: <NULL>\n")
     return(invisible(x))
@@ -25,12 +16,8 @@ print.s3_object <- function(x, ...) {
   invisible(x)
 }
 
-#' Summary method for s3_object
-#'
-#' @param object An s3_object
-#' @param ... Additional arguments passed to summary
 #' @export
-summary.s3_object <- function(object, ...) {
+summary.S3Object <- function(object, ...) {
   list(
     url = object$url(),
     key = object$key(),
@@ -46,25 +33,15 @@ summary.s3_object <- function(object, ...) {
   )
 }
 
-#' Str method for s3_object
-#'
-#' @param object An s3_object
-#' @param ... Additional arguments passed to str
 #' @export
-str.s3_object <- function(object, ...) {
+str.S3Object <- function(object, ...) {
   cat("S3 Object <", object$url(), ">\n", sep = "")
   cat("  Size:", object$size(), "bytes\n")
   cat("  Content Type:", object$content_type(), "\n")
 }
 
-#' Convert s3_object to data.frame
-#'
-#' @param x An s3_object
-#' @param row.names NULL or a character vector giving the row names for the data frame
-#' @param optional A logical value. If TRUE, setting row names and converting column names is optional
-#' @param ... Additional arguments passed to as.data.frame
 #' @export
-as.data.frame.s3_object <- function(x, row.names = NULL, optional = FALSE, ...) {
+as.data.frame.S3Object <- function(x, row.names = NULL, optional = FALSE, ...) {
   safe_access <- purrr::safely(~ x[[.x]](), otherwise = NA)
   properties <- c(
     "url", "key", "prefix", "exists", "size", "downloaded",
@@ -80,12 +57,8 @@ as.data.frame.s3_object <- function(x, row.names = NULL, optional = FALSE, ...) 
   tibble::as_tibble(purrr::list_modify(df, !!!range_df))
 }
 
-#' Length method for s3_object
-#'
-#' @param x An s3_object
 #' @export
-#' @importFrom reticulate py_len
-length.s3_object <- function(x) {
+length.S3Object <- function(x) {
   if (x$downloaded()) {
     reticulate::py_len(x$py_obj$text)
   } else {
@@ -93,13 +66,8 @@ length.s3_object <- function(x) {
   }
 }
 
-#' Convert s3_object to character
-#'
-#' @param x An s3_object
-#' @param ... Additional arguments passed to as.character
 #' @export
-#' @importFrom reticulate py_str
-as.character.s3_object <- function(x, ...) {
+as.character.S3Object <- function(x, ...) {
   if (x$downloaded()) {
     reticulate::py_str(x$py_obj$text)
   } else {
