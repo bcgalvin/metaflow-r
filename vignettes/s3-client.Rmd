@@ -1,8 +1,8 @@
 ---
-title: "Metaflow S3 Client"
+title: "S3 - Accessing data in S3 quickly (R Integration)"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Metaflow S3 Client}
+  %\VignetteIndexEntry{S3 - Accessing data in S3 quickly (R Integration)}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,219 +14,457 @@ knitr::opts_chunk$set(
 )
 ```
 
-## Introduction
+# S3 - Accessing data in S3 quickly
 
-The Metaflow S3 Client provides a convenient interface for interacting with Amazon S3 storage. This vignette focuses on using the S3 client to list objects in S3 buckets.
+The `S3` R6 class is a wrapper over the standard AWS Python library, `boto`, accessed through reticulate. It contains enhancements that are relevant for data-intensive applications:
 
-## Setting up the S3 Client
+- Supports accessing large amounts of data quickly through parallel operations (functions with the `_many` suffix). You can download up to 20Gbps on a large EC2 instance.
+- Improved error handling.
+- Supports versioned data through `S3$new(run=self)` and `S3$new(run=Run)`.
+- User-friendly API with minimal boilerplate.
+- Convenient API for advanced features such as range requests (downloading partial files) and object headers.
 
-First, let's create an S3 client:
+## The `S3` R6 Class
 
-```{r, eval=FALSE}
+### S3
+
+```r
 library(metaflow)
-
-# Create a new S3 client
-s3 <- create_s3_client(
-  tmproot = ".",
-  bucket = "my-bucket",
-  prefix = "my-prefix"
-)
-
-# Connect to S3
-s3$connect()
-```
-
-The `create_s3_client` function initializes a new S3 client. You can specify the temporary root directory, bucket name, and prefix. The `connect()` method establishes the connection to S3.
-
-### Customizing S3 Client Configuration
-
-```{r, eval=FALSE}
-# Set AWS role
-s3$set_role("arn:aws:iam::123456789012:role/my-role")
-
-# Set session variables
-s3$set_session_vars(list(var1 = "value1", var2 = "value2"))
-
-# Set client parameters
-s3$set_client_params(list(param1 = "value1", param2 = "value2"))
-```
-
-
-## Listing Objects with list_paths
-
-The `list_paths` method allows you to list objects at a specific S3 path. It returns a list of `S3Object` representations.
-
-```{r, eval=FALSE}
-# List objects in the root of the S3 path
-root_objects <- s3$list_paths()
-
-# List objects with specific keys
-specific_objects <- s3$list_paths(c("path1", "path2"))
-
-# Print the results
-print(root_objects)
-print(specific_objects)
-```
-
-## Recursive Listing with list_recursive
-
-The `list_recursive` method allows you to list all objects under given prefixes, including those in subfolders.
-
-```{r, eval=FALSE}
-# List all objects recursively
-all_objects <- s3$list_recursive()
-
-# List objects recursively from specific prefixes
-specific_recursive <- s3$list_recursive(c("prefix1", "prefix2"))
-
-# Print the results
-print(all_objects)
-print(specific_recursive)
-```
-
-## Working with S3Objects
-
-Both `list_paths` and `list_recursive` return lists of `S3Object` instances. Each `S3Object` has the following properties:
-
-- `exists`: Logical indicating if the object exists in S3
-- `url`: The S3 URL of the object
-- `prefix`: The prefix requested that matches this object
-- `key`: The key corresponding to this object
-- `size`: The size of the object in bytes
-- `has_info`: Logical indicating if the object contains additional metadata
-- `metadata`: A list of user-defined metadata (if any)
-- `content_type`: The content type of the S3 object
-- `last_modified`: The last modified timestamp
-- `encryption`: The server-side encryption type (if set)
-
-You can access these properties for each object using `purrr` functions:
-
-```{r, eval=FALSE}
 library(purrr)
-
-# Print key, size, last_modified, and URL for each object
-root_objects %>%
-  walk(~ cat(
-    "Key:", .$key, "\n",
-    "Size:", .$size, "bytes\n",
-    "Last Modified:", .$last_modified, "\n",
-    "URL:", .$url, "\n\n"
-  ))
-
-# Extract specific information from all objects
-keys <- map_chr(root_objects, "key")
-sizes <- map_dbl(root_objects, "size")
-last_modified_times <- map_dbl(root_objects, "last_modified")
-
-# Create a data frame of object information
-object_info <- root_objects %>%
-  map_dfr(~ list(
-    key = .$key,
-    size = .$size,
-    last_modified = .$last_modified,
-    url = .$url
-  ))
-
-print(object_info)
 ```
 
-## Getting Objects from S3
+The Metaflow S3 client.
 
-The S3 client provides several methods for retrieving objects from S3.
+This object manages the connection to S3 and a temporary directory that is used to download objects. Note that in most cases when the data fits in memory, no local disk IO is needed as operations are cached by the operating system, which makes operations fast as long as there is enough memory available.
 
-### Getting a Single Object
+The easiest way is to use this object is as follows:
 
-Use the `get` method to retrieve a single object from S3:
-
-```{r, eval=FALSE}
-# Get a single object
-s3_object <- s3$get("my_key")
-
-# Print the object
-print(s3_object)
+```r
+s3 <- S3$new()
+data <- s3$get_many(urls) %>% map(~ .x$blob)
+print(data)
 ```
 
-### Getting Multiple Objects
+You can customize the location of the temporary directory with `tmproot`. It defaults to the current working directory.
 
-To retrieve multiple objects at once, use the `get_many` method:
+To make it easier to deal with object locations, the client can be initialized with an S3 path prefix. There are three ways to handle locations:
 
-```{r, eval=FALSE}
-# Get multiple objects
-s3_objects <- s3$get_many(c("key1", "key2", "key3"))
+1. Use a `metaflow.Run` object or `self`, e.g. `S3$new(run=self)` which initializes the prefix with the global `DATATOOLS_S3ROOT` path, combined with the current run ID. This mode makes it easy to version data based on the run ID consistently. You can use the `bucket` and `prefix` to override parts of `DATATOOLS_S3ROOT`.
 
-# Print the objects
-print(s3_objects)
+2. Specify an S3 prefix explicitly with `s3root`, e.g. `S3$new(s3root='s3://mybucket/some/path')`.
+
+3. Specify nothing, i.e. `S3$new()`, in which case all operations require a full S3 url prefixed with `s3://`.
+
+#### Parameters
+
+- `tmproot` (character, default: '.'): Where to store the temporary directory.
+- `bucket` (character, optional): Override the bucket from `DATATOOLS_S3ROOT` when `run` is specified.
+- `prefix` (character, optional): Override the path from `DATATOOLS_S3ROOT` when `run` is specified.
+- `run` (FlowSpec or Run, optional): Derive path prefix from the current or a past run ID, e.g. S3$new(run=self).
+- `s3root` (character, optional): If `run` is not specified, use this as the S3 prefix.
+
+#### S3$close
+
+Delete all temporary files downloaded in this context.
+
+```r
+s3$close()
 ```
 
-### Getting Objects Recursively
+## Downloading data
 
-The `get_recursive` method allows you to download objects recursively from specified keys or prefixes:
+#### S3$get
 
-```{r, eval=FALSE}
-# Get objects recursively
-recursive_objects <- s3$get_recursive(c("prefix1", "prefix2"))
-
-# Print the objects
-print(recursive_objects)
+```r
+S3$get(key = NULL, return_missing = FALSE, return_info = TRUE)
 ```
 
-### Getting All Objects
+Get a single object from S3.
 
-If you want to retrieve all objects under the prefix set in the S3 constructor, use the `get_all` method:
+##### Parameters
 
-```{r, eval=FALSE}
-# Get all objects
-all_objects <- s3$get_all()
+- `key` (character or S3GetObject, optional, default NULL): Object to download. It can be an S3 url, a path suffix, or an S3GetObject that defines a range of data to download. If NULL, or not provided, gets the S3 root.
+- `return_missing` (logical, default FALSE): If set to TRUE, do not raise an exception for a missing key but return it as an `s3_object` with `$exists() == FALSE`.
+- `return_info` (logical, default TRUE): If set to TRUE, fetch the content-type and user metadata associated with the object at no extra cost, included for symmetry with `get_many`
 
-# Print the objects
-print(all_objects)
+##### Returns
+
+- s3_object: An s3_object corresponding to the object requested.
+
+#### S3$get_many
+
+```r
+S3$get_many(keys, return_missing = FALSE, return_info = TRUE)
 ```
 
-## Putting Objects to S3
+Get many objects from S3 in parallel.
 
-The S3 client also provides methods for uploading objects to S3.
+##### Parameters
 
-### Putting a Single Object
+- `keys` (list): Objects to download. Each object can be an S3 url, a path suffix, or an S3GetObject that defines a range of data to download.
+- `return_missing` (logical, default FALSE): If set to TRUE, do not raise an exception for a missing key but return it as an `s3_object` with `$exists() == FALSE`.
+- `return_info` (logical, default TRUE): If set to TRUE, fetch the content-type and user metadata associated with the object at no extra cost, included for symmetry with `get_many`.
 
-Use the `put` method to upload a single object to S3:
+##### Returns
 
-```{r, eval=FALSE}
-# Put a single object
-url <- s3$put("my_key", "My object content")
+- list: List of s3_object instances corresponding to the objects requested.
 
-# Print the URL of the stored object
-print(url)
+#### S3$get_recursive
+
+```r
+S3$get_recursive(keys, return_info = FALSE)
 ```
 
-### Putting Multiple Objects
+Get many objects from S3 recursively in parallel.
 
-To upload multiple objects at once, use the `put_many` method:
+##### Parameters
 
-```{r, eval=FALSE}
-# Put multiple objects
-results <- s3$put_many(list(
-  list(key = "key1", value = "Content 1"),
-  list(key = "key2", value = "Content 2")
-))
+- `keys` (list): Prefixes to download recursively. Each prefix can be an S3 url or a path suffix which define the root prefix under which all objects are downloaded.
+- `return_info` (logical, default FALSE): If set to TRUE, fetch the content-type and user metadata associated with the object.
 
-# Print the results
-print(results)
+##### Returns
+
+- list: List of s3_object instances stored under the given prefixes.
+
+#### S3$get_all
+
+```r
+S3$get_all(return_info = FALSE)
 ```
 
-### Putting Files
+Get all objects under the prefix set in the `S3` constructor.
 
-The `put_files` method allows you to upload multiple files to S3:
+This method requires that the `S3` object is initialized either with `run` or `s3root`.
 
-```{r, eval=FALSE}
-# Put multiple files
-results <- s3$put_files(list(
-  list(key = "key1", path = "path/to/file1"),
-  list(key = "key2", path = "path/to/file2")
-))
+##### Parameters
 
-# Print the results
-print(results)
+- `return_info` (logical, default FALSE): If set to TRUE, fetch the content-type and user metadata associated with the object.
+
+##### Returns
+
+- list: List of s3_object instances stored under the main prefix.
+
+## Listing objects
+
+#### S3$list_paths
+
+```r
+S3$list_paths(keys = NULL)
 ```
 
-These new methods provide a comprehensive set of tools for both retrieving and uploading objects to S3 using the Metaflow S3 client.
+List the next level of paths in S3.
+
+If multiple keys are specified, listings are done in parallel. The returned s3_object instances have `$exists() == FALSE` if the path refers to a prefix, not an existing S3 object.
+
+For instance, if the directory hierarchy is:
+
+```
+a/0.txt
+a/b/1.txt
+a/c/2.txt
+a/d/e/3.txt
+f/4.txt
+```
+
+The `S3$list_paths(c('a', 'f'))` call returns:
+
+```
+a/0.txt (exists == TRUE)
+a/b/ (exists == FALSE)
+a/c/ (exists == FALSE)
+a/d/ (exists == FALSE)
+f/4.txt (exists == TRUE)
+```
+
+##### Parameters
+
+- `keys` (list, optional, default NULL): List of paths.
+
+##### Returns
+
+- list: List of s3_object instances under the given paths, including prefixes (directories) that do not correspond to leaf objects.
+
+#### S3$list_recursive
+
+```r
+S3$list_recursive(keys = NULL)
+```
+
+List all objects recursively under the given prefixes.
+
+If multiple keys are specified, listings are done in parallel. All objects returned have `$exists() == TRUE` as this call always returns leaf objects.
+
+For instance, if the directory hierarchy is:
+
+```
+a/0.txt
+a/b/1.txt
+a/c/2.txt
+a/d/e/3.txt
+f/4.txt
+```
+
+The `S3$list_recursive(c('a', 'f'))` call returns:
+
+```
+a/0.txt (exists == TRUE)
+a/b/1.txt (exists == TRUE)
+a/c/2.txt (exists == TRUE)
+a/d/e/3.txt (exists == TRUE)
+f/4.txt (exists == TRUE)
+```
+
+##### Parameters
+
+- `keys` (list, optional, default NULL): List of paths.
+
+##### Returns
+
+- list: List of s3_object instances under the given paths.
+
+## Uploading data
+
+#### S3$put
+
+```r
+S3$put(key, obj, overwrite = TRUE, content_type = NULL, metadata = NULL)
+```
+
+Upload a single object to S3.
+
+##### Parameters
+
+- `key` (character or S3PutObject): Object path. It can be an S3 url or a path suffix.
+- `obj` (any R object): An object to store in S3. 
+- `overwrite` (logical, default TRUE): Overwrite the object if it exists. If set to FALSE, the operation succeeds without uploading anything if the key already exists.
+- `content_type` (character, optional, default NULL): Optional MIME type for the object.
+- `metadata` (list, optional, default NULL): A list of additional headers to be stored as metadata with the object.
+
+##### Returns
+
+- character: URL of the object stored.
+
+#### S3$put_many
+
+```r
+S3$put_many(key_objs, overwrite = TRUE)
+```
+
+Upload many objects to S3.
+
+Each object to be uploaded can be specified in two ways:
+
+1. As a `list(key, obj)` where `key` is a string specifying the path and `obj` is any R object.
+
+2. As a `S3PutObject` which contains additional metadata to be stored with the object.
+
+##### Parameters
+
+- `key_objs` (list): List of key-object pairs or S3PutObjects to upload.
+- `overwrite` (logical, default TRUE): Overwrite the object if it exists. If set to FALSE, the operation succeeds without uploading anything if the key already exists.
+
+##### Returns
+
+- list: List of `list(key, url)` pairs corresponding to the objects uploaded.
+
+#### S3$put_files
+
+```r
+S3$put_files(key_paths, overwrite = TRUE)
+```
+
+Upload many local files to S3.
+
+Each file to be uploaded can be specified in two ways:
+
+1. As a `list(key, path)` where `key` is a string specifying the S3 path and `path` is the path to a local file.
+
+2. As a `S3PutObject` which contains additional metadata to be stored with the file.
+
+##### Parameters
+
+- `key_paths` (list): List of files to upload.
+- `overwrite` (logical, default TRUE): Overwrite the object if it exists. If set to FALSE, the operation succeeds without uploading anything if the key already exists.
+
+##### Returns
+
+- list: List of `list(key, url)` pairs corresponding to the files uploaded.
+
+## Querying metadata
+
+#### S3$info
+
+```r
+S3$info(key = NULL, return_missing = FALSE)
+```
+
+Get metadata about a single object in S3.
+
+This call makes a single `HEAD` request to S3 which can be much faster than downloading all data with `get`.
+
+##### Parameters
+
+- `key` (character, optional, default NULL): Object to query. It can be an S3 url or a path suffix.
+- `return_missing` (logical, default FALSE): If set to TRUE, do not raise an exception for a missing key but return it as an `s3_object` with `$exists() == FALSE`.
+
+##### Returns
+
+- s3_object: An s3_object corresponding to the object requested. The object will have `$downloaded() == FALSE`.
+
+#### S3$info_many
+
+```r
+S3$info_many(keys, return_missing = FALSE)
+```
+
+Get metadata about many objects in S3 in parallel.
+
+This call makes a single `HEAD` request to S3 which can be much faster than downloading all data with `get`.
+
+##### Parameters
+
+- `keys` (list): Objects to query. Each key can be an S3 url or a path suffix.
+- `return_missing` (logical, default FALSE): If set to TRUE, do not raise an exception for a missing key but return it as an `s3_object` with `$exists() == FALSE`.
+
+##### Returns
+
+- list: A list of s3_object instances corresponding to the paths requested. The objects will have `$downloaded() == FALSE`.
+
+## Handling results with `s3_object`
+
+Most operations above return `s3_object` instances that encapsulate information about S3 paths and objects.
+
+Note that the data itself is not kept in these objects but it is stored in a temporary directory which is accessible through the properties of this object.
+
+### s3_object
+
+This object represents a path or an object in S3, with an optional local copy.
+
+`s3_object` instances are not instantiated directly, but they are returned by many methods of the `S3` R6 class.
+
+#### s3_object$exists()
+
+Does this key correspond to an object in S3?
+
+##### Returns
+
+- logical: TRUE if this object points at an existing object (file) in S3.
+
+#### s3_object$downloaded()
+
+Has this object been downloaded?
+
+If TRUE, the contents can be accessed through `path()`, `blob()`, and `text()` methods.
+
+##### Returns
+
+- logical: TRUE if the contents of this object have been downloaded.
+
+#### s3_object$url()
+
+S3 location of the object
+
+##### Returns
+
+- character: The S3 location of this object.
+
+#### s3_object$prefix()
+
+Prefix requested that matches this object.
+
+##### Returns
+
+- character: Requested prefix
+
+#### s3_object$key()
+
+Key corresponds to the key given to the get call that produced this object.
+
+This may be a full S3 URL or a suffix based on what was requested.
+
+##### Returns
+
+- character: Key requested.
+
+#### s3_object$path()
+
+Path to a local temporary file corresponding to the object downloaded.
+
+This file gets deleted automatically when an S3 scope exits. Returns NULL if this s3_object has not been downloaded.
+
+##### Returns
+
+- character: Local path, if the object has been downloaded.
+
+#### s3_object$blob()
+
+Contents of the object as a byte string or NULL if the object hasn't been downloaded.
+
+##### Returns
+
+- raw: Contents of the object as bytes.
+
+#### s3_object$text()
+
+Contents of the object as a string or NULL if the object hasn't been downloaded.
+
+The object is assumed to contain UTF-8 encoded data.
+
+##### Returns
+
+- character: Contents of the object as text.
+
+#### s3_object$size()
+
+Size of the object in bytes.
+
+Returns NULL if the key does not correspond to an object in S3.
+
+##### Returns
+
+- integer: Size of the object in bytes, if the object exists.
+
+#### s3_object$has_info()
+
+Returns true if this `s3_object` contains the content-type MIME header or user-defined metadata.
+
+If FALSE, this means that `content_type()`, `metadata()`, `range_info()` and `last_modified()` will return NULL.
+
+##### Returns
+
+- logical: TRUE if additional metadata is available.
+
+#### s3_object$metadata()
+
+Returns a list of user-defined metadata, or NULL if no metadata is defined.
+
+##### Returns
+
+- list: User-defined metadata.
+
+#### s3_object$content_type()
+
+Returns the content-type of the S3 object or NULL if it is not defined.
+
+##### Returns
+
+- character: Content type or NULL if the content type is undefined.
+
+#### s3_object$range_info()
+
+If the object corresponds to a partially downloaded object, returns information of what was downloaded.
+
+The returned object has the following fields:
+
+- `total_size`: Size of the object in S3.
+- `request_offset`: The starting offset.
+- `request_length`: The number of bytes downloaded.
+
+#### s3_object$last_modified()
+
+Returns the last modified unix timestamp of the object.
+
+##### Returns
+
+- POSIXct: Unix timestamp corresponding to the last modified time.
 

@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Metaflow S3 Client • metaflow</title>
+<title>S3 - Accessing data in S3 quickly (R Integration) • metaflow</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
 <link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png">
@@ -16,7 +16,7 @@
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Metaflow S3 Client">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="S3 - Accessing data in S3 quickly (R Integration)">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -54,7 +54,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.png" class="logo" alt=""><h1>Metaflow S3 Client</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>S3 - Accessing data in S3 quickly (R Integration)</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/bcgalvin/metaflow-r/blob/HEAD/vignettes/s3-client.Rmd" class="external-link"><code>vignettes/s3-client.Rmd</code></a></small>
@@ -64,241 +64,684 @@
     
     
 <div class="section level2">
-<h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
+<h2 id="s3---accessing-data-in-s3-quickly">S3 - Accessing data in S3 quickly<a class="anchor" aria-label="anchor" href="#s3---accessing-data-in-s3-quickly"></a>
 </h2>
-<p>The Metaflow S3 Client provides a convenient interface for
-interacting with Amazon S3 storage. This vignette focuses on using the
-S3 client to list objects in S3 buckets.</p>
-</div>
-<div class="section level2">
-<h2 id="setting-up-the-s3-client">Setting up the S3 Client<a class="anchor" aria-label="anchor" href="#setting-up-the-s3-client"></a>
-</h2>
-<p>First, let’s create an S3 client:</p>
+<p>The <code>S3</code> R6 class is a wrapper over the standard AWS
+Python library, <code>boto</code>, accessed through reticulate. It
+contains enhancements that are relevant for data-intensive
+applications:</p>
+<ul>
+<li>Supports accessing large amounts of data quickly through parallel
+operations (functions with the <code>_many</code> suffix). You can
+download up to 20Gbps on a large EC2 instance.</li>
+<li>Improved error handling.</li>
+<li>Supports versioned data through <code>S3$new(run=self)</code> and
+<code>S3$new(run=Run)</code>.</li>
+<li>User-friendly API with minimal boilerplate.</li>
+<li>Convenient API for advanced features such as range requests
+(downloading partial files) and object headers.</li>
+</ul>
+<div class="section level3">
+<h3 id="the-s3-r6-class">The <code>S3</code> R6 Class<a class="anchor" aria-label="anchor" href="#the-s3-r6-class"></a>
+</h3>
+<div class="section level4">
+<h4 id="s3">S3<a class="anchor" aria-label="anchor" href="#s3"></a>
+</h4>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://metaflow.org/" class="external-link">metaflow</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Create a new S3 client</span></span>
-<span><span class="va">s3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_s3_client.html">create_s3_client</a></span><span class="op">(</span></span>
-<span>  tmproot <span class="op">=</span> <span class="st">"."</span>,</span>
-<span>  bucket <span class="op">=</span> <span class="st">"my-bucket"</span>,</span>
-<span>  prefix <span class="op">=</span> <span class="st">"my-prefix"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Connect to S3</span></span>
-<span><span class="va">s3</span><span class="op">$</span><span class="fu">connect</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>The <code>create_s3_client</code> function initializes a new S3
-client. You can specify the temporary root directory, bucket name, and
-prefix. The <code>connect()</code> method establishes the connection to
-S3.</p>
-<div class="section level3">
-<h3 id="customizing-s3-client-configuration">Customizing S3 Client Configuration<a class="anchor" aria-label="anchor" href="#customizing-s3-client-configuration"></a>
-</h3>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://purrr.tidyverse.org/" class="external-link">purrr</a></span><span class="op">)</span></span></code></pre></div>
+<p>The Metaflow S3 client.</p>
+<p>This object manages the connection to S3 and a temporary directory
+that is used to download objects. Note that in most cases when the data
+fits in memory, no local disk IO is needed as operations are cached by
+the operating system, which makes operations fast as long as there is
+enough memory available.</p>
+<p>The easiest way is to use this object is as follows:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Set AWS role</span></span>
-<span><span class="va">s3</span><span class="op">$</span><span class="fu">set_role</span><span class="op">(</span><span class="st">"arn:aws:iam::123456789012:role/my-role"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Set session variables</span></span>
-<span><span class="va">s3</span><span class="op">$</span><span class="fu">set_session_vars</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>var1 <span class="op">=</span> <span class="st">"value1"</span>, var2 <span class="op">=</span> <span class="st">"value2"</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Set client parameters</span></span>
-<span><span class="va">s3</span><span class="op">$</span><span class="fu">set_client_params</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>param1 <span class="op">=</span> <span class="st">"value1"</span>, param2 <span class="op">=</span> <span class="st">"value2"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-</div>
-</div>
-<div class="section level2">
-<h2 id="listing-objects-with-list_paths">Listing Objects with list_paths<a class="anchor" aria-label="anchor" href="#listing-objects-with-list_paths"></a>
-</h2>
-<p>The <code>list_paths</code> method allows you to list objects at a
-specific S3 path. It returns a list of <code>S3Object</code>
-representations.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># List objects in the root of the S3 path</span></span>
-<span><span class="va">root_objects</span> <span class="op">&lt;-</span> <span class="va">s3</span><span class="op">$</span><span class="fu">list_paths</span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># List objects with specific keys</span></span>
-<span><span class="va">specific_objects</span> <span class="op">&lt;-</span> <span class="va">s3</span><span class="op">$</span><span class="fu">list_paths</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"path1"</span>, <span class="st">"path2"</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Print the results</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">root_objects</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">specific_objects</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="recursive-listing-with-list_recursive">Recursive Listing with list_recursive<a class="anchor" aria-label="anchor" href="#recursive-listing-with-list_recursive"></a>
-</h2>
-<p>The <code>list_recursive</code> method allows you to list all objects
-under given prefixes, including those in subfolders.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># List all objects recursively</span></span>
-<span><span class="va">all_objects</span> <span class="op">&lt;-</span> <span class="va">s3</span><span class="op">$</span><span class="fu">list_recursive</span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># List objects recursively from specific prefixes</span></span>
-<span><span class="va">specific_recursive</span> <span class="op">&lt;-</span> <span class="va">s3</span><span class="op">$</span><span class="fu">list_recursive</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"prefix1"</span>, <span class="st">"prefix2"</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Print the results</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">all_objects</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">specific_recursive</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="working-with-s3objects">Working with S3Objects<a class="anchor" aria-label="anchor" href="#working-with-s3objects"></a>
-</h2>
-<p>Both <code>list_paths</code> and <code>list_recursive</code> return
-lists of <code>S3Object</code> instances. Each <code>S3Object</code> has
-the following properties:</p>
+<code class="sourceCode R"><span><span class="va">s3</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/S3.html">S3</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="va">s3</span><span class="op">$</span><span class="fu">get_many</span><span class="op">(</span><span class="va">urls</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="op">~</span> <span class="va">.x</span><span class="op">$</span><span class="va">blob</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span></code></pre></div>
+<p>You can customize the location of the temporary directory with
+<code>tmproot</code>. It defaults to the current working directory.</p>
+<p>To make it easier to deal with object locations, the client can be
+initialized with an S3 path prefix. There are three ways to handle
+locations:</p>
+<ol style="list-style-type: decimal">
+<li><p>Use a <code>metaflow.Run</code> object or <code>self</code>,
+e.g. <code>S3$new(run=self)</code> which initializes the prefix with the
+global <code>DATATOOLS_S3ROOT</code> path, combined with the current run
+ID. This mode makes it easy to version data based on the run ID
+consistently. You can use the <code>bucket</code> and
+<code>prefix</code> to override parts of
+<code>DATATOOLS_S3ROOT</code>.</p></li>
+<li><p>Specify an S3 prefix explicitly with <code>s3root</code>,
+e.g. <code>S3$new(s3root='s3://mybucket/some/path')</code>.</p></li>
+<li><p>Specify nothing, i.e. <code>S3$new()</code>, in which case all
+operations require a full S3 url prefixed with
+<code>s3://</code>.</p></li>
+</ol>
+<div class="section level5">
+<h5 id="parameters">Parameters<a class="anchor" aria-label="anchor" href="#parameters"></a>
+</h5>
 <ul>
 <li>
-<code>exists</code>: Logical indicating if the object exists in
-S3</li>
+<code>tmproot</code> (character, default: ‘.’): Where to store the
+temporary directory.</li>
 <li>
-<code>url</code>: The S3 URL of the object</li>
+<code>bucket</code> (character, optional): Override the bucket from
+<code>DATATOOLS_S3ROOT</code> when <code>run</code> is specified.</li>
 <li>
-<code>prefix</code>: The prefix requested that matches this
-object</li>
+<code>prefix</code> (character, optional): Override the path from
+<code>DATATOOLS_S3ROOT</code> when <code>run</code> is specified.</li>
 <li>
-<code>key</code>: The key corresponding to this object</li>
+<code>run</code> (FlowSpec or Run, optional): Derive path prefix
+from the current or a past run ID, e.g. S3$new(run=self).</li>
 <li>
-<code>size</code>: The size of the object in bytes</li>
-<li>
-<code>has_info</code>: Logical indicating if the object contains
-additional metadata</li>
-<li>
-<code>metadata</code>: A list of user-defined metadata (if any)</li>
-<li>
-<code>content_type</code>: The content type of the S3 object</li>
-<li>
-<code>last_modified</code>: The last modified timestamp</li>
-<li>
-<code>encryption</code>: The server-side encryption type (if
-set)</li>
+<code>s3root</code> (character, optional): If <code>run</code> is
+not specified, use this as the S3 prefix.</li>
 </ul>
-<p>You can access these properties for each object using
-<code>purrr</code> functions:</p>
+</div>
+<div class="section level5">
+<h5 id="s3close">S3$close<a class="anchor" aria-label="anchor" href="#s3close"></a>
+</h5>
+<p>Delete all temporary files downloaded in this context.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">s3</span><span class="op">$</span><span class="fu">close</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+</div>
+<div class="section level3">
+<h3 id="downloading-data">Downloading data<a class="anchor" aria-label="anchor" href="#downloading-data"></a>
+</h3>
+<div class="section level5">
+<h5 id="s3get">S3$get<a class="anchor" aria-label="anchor" href="#s3get"></a>
+</h5>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">S3</span><span class="op">$</span><span class="fu">get</span><span class="op">(</span>key <span class="op">=</span> <span class="cn">NULL</span>, return_missing <span class="op">=</span> <span class="cn">FALSE</span>, return_info <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Get a single object from S3.</p>
+<div class="section level6">
+<h6 id="parameters-1">Parameters<a class="anchor" aria-label="anchor" href="#parameters-1"></a>
+</h6>
+<ul>
+<li>
+<code>key</code> (character or S3GetObject, optional, default NULL):
+Object to download. It can be an S3 url, a path suffix, or an
+S3GetObject that defines a range of data to download. If NULL, or not
+provided, gets the S3 root.</li>
+<li>
+<code>return_missing</code> (logical, default FALSE): If set to
+TRUE, do not raise an exception for a missing key but return it as an
+<code>s3_object</code> with <code>$exists() == FALSE</code>.</li>
+<li>
+<code>return_info</code> (logical, default TRUE): If set to TRUE,
+fetch the content-type and user metadata associated with the object at
+no extra cost, included for symmetry with <code>get_many</code>
+</li>
+</ul>
+</div>
+<div class="section level6">
+<h6 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a>
+</h6>
+<ul>
+<li>s3_object: An s3_object corresponding to the object requested.</li>
+</ul>
+</div>
+</div>
+<div class="section level5">
+<h5 id="s3get_many">S3$get_many<a class="anchor" aria-label="anchor" href="#s3get_many"></a>
+</h5>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://purrr.tidyverse.org/" class="external-link">purrr</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Print key, size, last_modified, and URL for each object</span></span>
-<span><span class="va">root_objects</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">walk</a></span><span class="op">(</span><span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span></span>
-<span>    <span class="st">"Key:"</span>, <span class="va">.</span><span class="op">$</span><span class="va">key</span>, <span class="st">"\n"</span>,</span>
-<span>    <span class="st">"Size:"</span>, <span class="va">.</span><span class="op">$</span><span class="va">size</span>, <span class="st">"bytes\n"</span>,</span>
-<span>    <span class="st">"Last Modified:"</span>, <span class="va">.</span><span class="op">$</span><span class="va">last_modified</span>, <span class="st">"\n"</span>,</span>
-<span>    <span class="st">"URL:"</span>, <span class="va">.</span><span class="op">$</span><span class="va">url</span>, <span class="st">"\n\n"</span></span>
-<span>  <span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Extract specific information from all objects</span></span>
-<span><span class="va">keys</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map_chr</a></span><span class="op">(</span><span class="va">root_objects</span>, <span class="st">"key"</span><span class="op">)</span></span>
-<span><span class="va">sizes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map_dbl</a></span><span class="op">(</span><span class="va">root_objects</span>, <span class="st">"size"</span><span class="op">)</span></span>
-<span><span class="va">last_modified_times</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map_dbl</a></span><span class="op">(</span><span class="va">root_objects</span>, <span class="st">"last_modified"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Create a data frame of object information</span></span>
-<span><span class="va">object_info</span> <span class="op">&lt;-</span> <span class="va">root_objects</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_dfr</a></span><span class="op">(</span><span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    key <span class="op">=</span> <span class="va">.</span><span class="op">$</span><span class="va">key</span>,</span>
-<span>    size <span class="op">=</span> <span class="va">.</span><span class="op">$</span><span class="va">size</span>,</span>
-<span>    last_modified <span class="op">=</span> <span class="va">.</span><span class="op">$</span><span class="va">last_modified</span>,</span>
-<span>    url <span class="op">=</span> <span class="va">.</span><span class="op">$</span><span class="va">url</span></span>
-<span>  <span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">object_info</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">S3</span><span class="op">$</span><span class="fu">get_many</span><span class="op">(</span><span class="va">keys</span>, return_missing <span class="op">=</span> <span class="cn">FALSE</span>, return_info <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Get many objects from S3 in parallel.</p>
+<div class="section level6">
+<h6 id="parameters-2">Parameters<a class="anchor" aria-label="anchor" href="#parameters-2"></a>
+</h6>
+<ul>
+<li>
+<code>keys</code> (list): Objects to download. Each object can be an
+S3 url, a path suffix, or an S3GetObject that defines a range of data to
+download.</li>
+<li>
+<code>return_missing</code> (logical, default FALSE): If set to
+TRUE, do not raise an exception for a missing key but return it as an
+<code>s3_object</code> with <code>$exists() == FALSE</code>.</li>
+<li>
+<code>return_info</code> (logical, default TRUE): If set to TRUE,
+fetch the content-type and user metadata associated with the object at
+no extra cost, included for symmetry with <code>get_many</code>.</li>
+</ul>
 </div>
-<div class="section level2">
-<h2 id="getting-objects-from-s3">Getting Objects from S3<a class="anchor" aria-label="anchor" href="#getting-objects-from-s3"></a>
-</h2>
-<p>The S3 client provides several methods for retrieving objects from
-S3.</p>
-<div class="section level3">
-<h3 id="getting-a-single-object">Getting a Single Object<a class="anchor" aria-label="anchor" href="#getting-a-single-object"></a>
-</h3>
-<p>Use the <code>get</code> method to retrieve a single object from
-S3:</p>
+<div class="section level6">
+<h6 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a>
+</h6>
+<ul>
+<li>list: List of s3_object instances corresponding to the objects
+requested.</li>
+</ul>
+</div>
+</div>
+<div class="section level5">
+<h5 id="s3get_recursive">S3$get_recursive<a class="anchor" aria-label="anchor" href="#s3get_recursive"></a>
+</h5>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Get a single object</span></span>
-<span><span class="va">s3_object</span> <span class="op">&lt;-</span> <span class="va">s3</span><span class="op">$</span><span class="fu">get</span><span class="op">(</span><span class="st">"my_key"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Print the object</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">s3_object</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">S3</span><span class="op">$</span><span class="fu">get_recursive</span><span class="op">(</span><span class="va">keys</span>, return_info <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<p>Get many objects from S3 recursively in parallel.</p>
+<div class="section level6">
+<h6 id="parameters-3">Parameters<a class="anchor" aria-label="anchor" href="#parameters-3"></a>
+</h6>
+<ul>
+<li>
+<code>keys</code> (list): Prefixes to download recursively. Each
+prefix can be an S3 url or a path suffix which define the root prefix
+under which all objects are downloaded.</li>
+<li>
+<code>return_info</code> (logical, default FALSE): If set to TRUE,
+fetch the content-type and user metadata associated with the
+object.</li>
+</ul>
 </div>
-<div class="section level3">
-<h3 id="getting-multiple-objects">Getting Multiple Objects<a class="anchor" aria-label="anchor" href="#getting-multiple-objects"></a>
-</h3>
-<p>To retrieve multiple objects at once, use the <code>get_many</code>
-method:</p>
+<div class="section level6">
+<h6 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a>
+</h6>
+<ul>
+<li>list: List of s3_object instances stored under the given
+prefixes.</li>
+</ul>
+</div>
+</div>
+<div class="section level5">
+<h5 id="s3get_all">S3$get_all<a class="anchor" aria-label="anchor" href="#s3get_all"></a>
+</h5>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Get multiple objects</span></span>
-<span><span class="va">s3_objects</span> <span class="op">&lt;-</span> <span class="va">s3</span><span class="op">$</span><span class="fu">get_many</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"key1"</span>, <span class="st">"key2"</span>, <span class="st">"key3"</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Print the objects</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">s3_objects</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">S3</span><span class="op">$</span><span class="fu">get_all</span><span class="op">(</span>return_info <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<p>Get all objects under the prefix set in the <code>S3</code>
+constructor.</p>
+<p>This method requires that the <code>S3</code> object is initialized
+either with <code>run</code> or <code>s3root</code>.</p>
+<div class="section level6">
+<h6 id="parameters-4">Parameters<a class="anchor" aria-label="anchor" href="#parameters-4"></a>
+</h6>
+<ul>
+<li>
+<code>return_info</code> (logical, default FALSE): If set to TRUE,
+fetch the content-type and user metadata associated with the
+object.</li>
+</ul>
+</div>
+<div class="section level6">
+<h6 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a>
+</h6>
+<ul>
+<li>list: List of s3_object instances stored under the main prefix.</li>
+</ul>
+</div>
+</div>
 </div>
 <div class="section level3">
-<h3 id="getting-objects-recursively">Getting Objects Recursively<a class="anchor" aria-label="anchor" href="#getting-objects-recursively"></a>
+<h3 id="listing-objects">Listing objects<a class="anchor" aria-label="anchor" href="#listing-objects"></a>
 </h3>
-<p>The <code>get_recursive</code> method allows you to download objects
-recursively from specified keys or prefixes:</p>
+<div class="section level5">
+<h5 id="s3list_paths">S3$list_paths<a class="anchor" aria-label="anchor" href="#s3list_paths"></a>
+</h5>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Get objects recursively</span></span>
-<span><span class="va">recursive_objects</span> <span class="op">&lt;-</span> <span class="va">s3</span><span class="op">$</span><span class="fu">get_recursive</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"prefix1"</span>, <span class="st">"prefix2"</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Print the objects</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">recursive_objects</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">S3</span><span class="op">$</span><span class="fu">list_paths</span><span class="op">(</span>keys <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+<p>List the next level of paths in S3.</p>
+<p>If multiple keys are specified, listings are done in parallel. The
+returned s3_object instances have <code>$exists() == FALSE</code> if the
+path refers to a prefix, not an existing S3 object.</p>
+<p>For instance, if the directory hierarchy is:</p>
+<pre><code>a/0.txt
+a/b/1.txt
+a/c/2.txt
+a/d/e/3.txt
+f/4.txt</code></pre>
+<p>The <code>S3$list_paths(c('a', 'f'))</code> call returns:</p>
+<pre><code>a/0.txt (exists == TRUE)
+a/b/ (exists == FALSE)
+a/c/ (exists == FALSE)
+a/d/ (exists == FALSE)
+f/4.txt (exists == TRUE)</code></pre>
+<div class="section level6">
+<h6 id="parameters-5">Parameters<a class="anchor" aria-label="anchor" href="#parameters-5"></a>
+</h6>
+<ul>
+<li>
+<code>keys</code> (list, optional, default NULL): List of
+paths.</li>
+</ul>
 </div>
-<div class="section level3">
-<h3 id="getting-all-objects">Getting All Objects<a class="anchor" aria-label="anchor" href="#getting-all-objects"></a>
-</h3>
-<p>If you want to retrieve all objects under the prefix set in the S3
-constructor, use the <code>get_all</code> method:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Get all objects</span></span>
-<span><span class="va">all_objects</span> <span class="op">&lt;-</span> <span class="va">s3</span><span class="op">$</span><span class="fu">get_all</span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Print the objects</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">all_objects</span><span class="op">)</span></span></code></pre></div>
+<div class="section level6">
+<h6 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a>
+</h6>
+<ul>
+<li>list: List of s3_object instances under the given paths, including
+prefixes (directories) that do not correspond to leaf objects.</li>
+</ul>
 </div>
 </div>
-<div class="section level2">
-<h2 id="putting-objects-to-s3">Putting Objects to S3<a class="anchor" aria-label="anchor" href="#putting-objects-to-s3"></a>
-</h2>
-<p>The S3 client also provides methods for uploading objects to S3.</p>
-<div class="section level3">
-<h3 id="putting-a-single-object">Putting a Single Object<a class="anchor" aria-label="anchor" href="#putting-a-single-object"></a>
-</h3>
-<p>Use the <code>put</code> method to upload a single object to S3:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Put a single object</span></span>
-<span><span class="va">url</span> <span class="op">&lt;-</span> <span class="va">s3</span><span class="op">$</span><span class="fu">put</span><span class="op">(</span><span class="st">"my_key"</span>, <span class="st">"My object content"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Print the URL of the stored object</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">url</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="putting-multiple-objects">Putting Multiple Objects<a class="anchor" aria-label="anchor" href="#putting-multiple-objects"></a>
-</h3>
-<p>To upload multiple objects at once, use the <code>put_many</code>
-method:</p>
+<div class="section level5">
+<h5 id="s3list_recursive">S3$list_recursive<a class="anchor" aria-label="anchor" href="#s3list_recursive"></a>
+</h5>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Put multiple objects</span></span>
-<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="va">s3</span><span class="op">$</span><span class="fu">put_many</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>key <span class="op">=</span> <span class="st">"key1"</span>, value <span class="op">=</span> <span class="st">"Content 1"</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>key <span class="op">=</span> <span class="st">"key2"</span>, value <span class="op">=</span> <span class="st">"Content 2"</span><span class="op">)</span></span>
-<span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Print the results</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">S3</span><span class="op">$</span><span class="fu">list_recursive</span><span class="op">(</span>keys <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+<p>List all objects recursively under the given prefixes.</p>
+<p>If multiple keys are specified, listings are done in parallel. All
+objects returned have <code>$exists() == TRUE</code> as this call always
+returns leaf objects.</p>
+<p>For instance, if the directory hierarchy is:</p>
+<pre><code>a/0.txt
+a/b/1.txt
+a/c/2.txt
+a/d/e/3.txt
+f/4.txt</code></pre>
+<p>The <code>S3$list_recursive(c('a', 'f'))</code> call returns:</p>
+<pre><code>a/0.txt (exists == TRUE)
+a/b/1.txt (exists == TRUE)
+a/c/2.txt (exists == TRUE)
+a/d/e/3.txt (exists == TRUE)
+f/4.txt (exists == TRUE)</code></pre>
+<div class="section level6">
+<h6 id="parameters-6">Parameters<a class="anchor" aria-label="anchor" href="#parameters-6"></a>
+</h6>
+<ul>
+<li>
+<code>keys</code> (list, optional, default NULL): List of
+paths.</li>
+</ul>
+</div>
+<div class="section level6">
+<h6 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a>
+</h6>
+<ul>
+<li>list: List of s3_object instances under the given paths.</li>
+</ul>
+</div>
+</div>
 </div>
 <div class="section level3">
-<h3 id="putting-files">Putting Files<a class="anchor" aria-label="anchor" href="#putting-files"></a>
+<h3 id="uploading-data">Uploading data<a class="anchor" aria-label="anchor" href="#uploading-data"></a>
 </h3>
-<p>The <code>put_files</code> method allows you to upload multiple files
-to S3:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Put multiple files</span></span>
-<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="va">s3</span><span class="op">$</span><span class="fu">put_files</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>key <span class="op">=</span> <span class="st">"key1"</span>, path <span class="op">=</span> <span class="st">"path/to/file1"</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>key <span class="op">=</span> <span class="st">"key2"</span>, path <span class="op">=</span> <span class="st">"path/to/file2"</span><span class="op">)</span></span>
-<span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Print the results</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span></code></pre></div>
-<p>These new methods provide a comprehensive set of tools for both
-retrieving and uploading objects to S3 using the Metaflow S3 client.</p>
+<div class="section level5">
+<h5 id="s3put">S3$put<a class="anchor" aria-label="anchor" href="#s3put"></a>
+</h5>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">S3</span><span class="op">$</span><span class="fu">put</span><span class="op">(</span><span class="va">key</span>, <span class="va">obj</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span>, content_type <span class="op">=</span> <span class="cn">NULL</span>, metadata <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+<p>Upload a single object to S3.</p>
+<div class="section level6">
+<h6 id="parameters-7">Parameters<a class="anchor" aria-label="anchor" href="#parameters-7"></a>
+</h6>
+<ul>
+<li>
+<code>key</code> (character or S3PutObject): Object path. It can be
+an S3 url or a path suffix.</li>
+<li>
+<code>obj</code> (any R object): An object to store in S3.</li>
+<li>
+<code>overwrite</code> (logical, default TRUE): Overwrite the object
+if it exists. If set to FALSE, the operation succeeds without uploading
+anything if the key already exists.</li>
+<li>
+<code>content_type</code> (character, optional, default NULL):
+Optional MIME type for the object.</li>
+<li>
+<code>metadata</code> (list, optional, default NULL): A list of
+additional headers to be stored as metadata with the object.</li>
+</ul>
+</div>
+<div class="section level6">
+<h6 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a>
+</h6>
+<ul>
+<li>character: URL of the object stored.</li>
+</ul>
+</div>
+</div>
+<div class="section level5">
+<h5 id="s3put_many">S3$put_many<a class="anchor" aria-label="anchor" href="#s3put_many"></a>
+</h5>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">S3</span><span class="op">$</span><span class="fu">put_many</span><span class="op">(</span><span class="va">key_objs</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Upload many objects to S3.</p>
+<p>Each object to be uploaded can be specified in two ways:</p>
+<ol style="list-style-type: decimal">
+<li><p>As a <code>list(key, obj)</code> where <code>key</code> is a
+string specifying the path and <code>obj</code> is any R
+object.</p></li>
+<li><p>As a <code>S3PutObject</code> which contains additional metadata
+to be stored with the object.</p></li>
+</ol>
+<div class="section level6">
+<h6 id="parameters-8">Parameters<a class="anchor" aria-label="anchor" href="#parameters-8"></a>
+</h6>
+<ul>
+<li>
+<code>key_objs</code> (list): List of key-object pairs or
+S3PutObjects to upload.</li>
+<li>
+<code>overwrite</code> (logical, default TRUE): Overwrite the object
+if it exists. If set to FALSE, the operation succeeds without uploading
+anything if the key already exists.</li>
+</ul>
+</div>
+<div class="section level6">
+<h6 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a>
+</h6>
+<ul>
+<li>list: List of <code>list(key, url)</code> pairs corresponding to the
+objects uploaded.</li>
+</ul>
+</div>
+</div>
+<div class="section level5">
+<h5 id="s3put_files">S3$put_files<a class="anchor" aria-label="anchor" href="#s3put_files"></a>
+</h5>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">S3</span><span class="op">$</span><span class="fu">put_files</span><span class="op">(</span><span class="va">key_paths</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Upload many local files to S3.</p>
+<p>Each file to be uploaded can be specified in two ways:</p>
+<ol style="list-style-type: decimal">
+<li><p>As a <code>list(key, path)</code> where <code>key</code> is a
+string specifying the S3 path and <code>path</code> is the path to a
+local file.</p></li>
+<li><p>As a <code>S3PutObject</code> which contains additional metadata
+to be stored with the file.</p></li>
+</ol>
+<div class="section level6">
+<h6 id="parameters-9">Parameters<a class="anchor" aria-label="anchor" href="#parameters-9"></a>
+</h6>
+<ul>
+<li>
+<code>key_paths</code> (list): List of files to upload.</li>
+<li>
+<code>overwrite</code> (logical, default TRUE): Overwrite the object
+if it exists. If set to FALSE, the operation succeeds without uploading
+anything if the key already exists.</li>
+</ul>
+</div>
+<div class="section level6">
+<h6 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a>
+</h6>
+<ul>
+<li>list: List of <code>list(key, url)</code> pairs corresponding to the
+files uploaded.</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section level3">
+<h3 id="querying-metadata">Querying metadata<a class="anchor" aria-label="anchor" href="#querying-metadata"></a>
+</h3>
+<div class="section level5">
+<h5 id="s3info">S3$info<a class="anchor" aria-label="anchor" href="#s3info"></a>
+</h5>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">S3</span><span class="op">$</span><span class="fu">info</span><span class="op">(</span>key <span class="op">=</span> <span class="cn">NULL</span>, return_missing <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<p>Get metadata about a single object in S3.</p>
+<p>This call makes a single <code>HEAD</code> request to S3 which can be
+much faster than downloading all data with <code>get</code>.</p>
+<div class="section level6">
+<h6 id="parameters-10">Parameters<a class="anchor" aria-label="anchor" href="#parameters-10"></a>
+</h6>
+<ul>
+<li>
+<code>key</code> (character, optional, default NULL): Object to
+query. It can be an S3 url or a path suffix.</li>
+<li>
+<code>return_missing</code> (logical, default FALSE): If set to
+TRUE, do not raise an exception for a missing key but return it as an
+<code>s3_object</code> with <code>$exists() == FALSE</code>.</li>
+</ul>
+</div>
+<div class="section level6">
+<h6 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a>
+</h6>
+<ul>
+<li>s3_object: An s3_object corresponding to the object requested. The
+object will have <code>$downloaded() == FALSE</code>.</li>
+</ul>
+</div>
+</div>
+<div class="section level5">
+<h5 id="s3info_many">S3$info_many<a class="anchor" aria-label="anchor" href="#s3info_many"></a>
+</h5>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">S3</span><span class="op">$</span><span class="fu">info_many</span><span class="op">(</span><span class="va">keys</span>, return_missing <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<p>Get metadata about many objects in S3 in parallel.</p>
+<p>This call makes a single <code>HEAD</code> request to S3 which can be
+much faster than downloading all data with <code>get</code>.</p>
+<div class="section level6">
+<h6 id="parameters-11">Parameters<a class="anchor" aria-label="anchor" href="#parameters-11"></a>
+</h6>
+<ul>
+<li>
+<code>keys</code> (list): Objects to query. Each key can be an S3
+url or a path suffix.</li>
+<li>
+<code>return_missing</code> (logical, default FALSE): If set to
+TRUE, do not raise an exception for a missing key but return it as an
+<code>s3_object</code> with <code>$exists() == FALSE</code>.</li>
+</ul>
+</div>
+<div class="section level6">
+<h6 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a>
+</h6>
+<ul>
+<li>list: A list of s3_object instances corresponding to the paths
+requested. The objects will have
+<code>$downloaded() == FALSE</code>.</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section level3">
+<h3 id="handling-results-with-s3_object">Handling results with <code>s3_object</code><a class="anchor" aria-label="anchor" href="#handling-results-with-s3_object"></a>
+</h3>
+<p>Most operations above return <code>s3_object</code> instances that
+encapsulate information about S3 paths and objects.</p>
+<p>Note that the data itself is not kept in these objects but it is
+stored in a temporary directory which is accessible through the
+properties of this object.</p>
+<div class="section level4">
+<h4 id="s3_object">s3_object<a class="anchor" aria-label="anchor" href="#s3_object"></a>
+</h4>
+<p>This object represents a path or an object in S3, with an optional
+local copy.</p>
+<p><code>s3_object</code> instances are not instantiated directly, but
+they are returned by many methods of the <code>S3</code> R6 class.</p>
+<div class="section level5">
+<h5 id="s3_objectexists">s3_object$exists()<a class="anchor" aria-label="anchor" href="#s3_objectexists"></a>
+</h5>
+<p>Does this key correspond to an object in S3?</p>
+<div class="section level6">
+<h6 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a>
+</h6>
+<ul>
+<li>logical: TRUE if this object points at an existing object (file) in
+S3.</li>
+</ul>
+</div>
+</div>
+<div class="section level5">
+<h5 id="s3_objectdownloaded">s3_object$downloaded()<a class="anchor" aria-label="anchor" href="#s3_objectdownloaded"></a>
+</h5>
+<p>Has this object been downloaded?</p>
+<p>If TRUE, the contents can be accessed through <code>path()</code>,
+<code>blob()</code>, and <code><a href="https://rdrr.io/r/graphics/text.html" class="external-link">text()</a></code> methods.</p>
+<div class="section level6">
+<h6 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a>
+</h6>
+<ul>
+<li>logical: TRUE if the contents of this object have been
+downloaded.</li>
+</ul>
+</div>
+</div>
+<div class="section level5">
+<h5 id="s3_objecturl">s3_object$url()<a class="anchor" aria-label="anchor" href="#s3_objecturl"></a>
+</h5>
+<p>S3 location of the object</p>
+<div class="section level6">
+<h6 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a>
+</h6>
+<ul>
+<li>character: The S3 location of this object.</li>
+</ul>
+</div>
+</div>
+<div class="section level5">
+<h5 id="s3_objectprefix">s3_object$prefix()<a class="anchor" aria-label="anchor" href="#s3_objectprefix"></a>
+</h5>
+<p>Prefix requested that matches this object.</p>
+<div class="section level6">
+<h6 id="returns-14">Returns<a class="anchor" aria-label="anchor" href="#returns-14"></a>
+</h6>
+<ul>
+<li>character: Requested prefix</li>
+</ul>
+</div>
+</div>
+<div class="section level5">
+<h5 id="s3_objectkey">s3_object$key()<a class="anchor" aria-label="anchor" href="#s3_objectkey"></a>
+</h5>
+<p>Key corresponds to the key given to the get call that produced this
+object.</p>
+<p>This may be a full S3 URL or a suffix based on what was
+requested.</p>
+<div class="section level6">
+<h6 id="returns-15">Returns<a class="anchor" aria-label="anchor" href="#returns-15"></a>
+</h6>
+<ul>
+<li>character: Key requested.</li>
+</ul>
+</div>
+</div>
+<div class="section level5">
+<h5 id="s3_objectpath">s3_object$path()<a class="anchor" aria-label="anchor" href="#s3_objectpath"></a>
+</h5>
+<p>Path to a local temporary file corresponding to the object
+downloaded.</p>
+<p>This file gets deleted automatically when an S3 scope exits. Returns
+NULL if this s3_object has not been downloaded.</p>
+<div class="section level6">
+<h6 id="returns-16">Returns<a class="anchor" aria-label="anchor" href="#returns-16"></a>
+</h6>
+<ul>
+<li>character: Local path, if the object has been downloaded.</li>
+</ul>
+</div>
+</div>
+<div class="section level5">
+<h5 id="s3_objectblob">s3_object$blob()<a class="anchor" aria-label="anchor" href="#s3_objectblob"></a>
+</h5>
+<p>Contents of the object as a byte string or NULL if the object hasn’t
+been downloaded.</p>
+<div class="section level6">
+<h6 id="returns-17">Returns<a class="anchor" aria-label="anchor" href="#returns-17"></a>
+</h6>
+<ul>
+<li>raw: Contents of the object as bytes.</li>
+</ul>
+</div>
+</div>
+<div class="section level5">
+<h5 id="s3_objecttext">s3_object$text()<a class="anchor" aria-label="anchor" href="#s3_objecttext"></a>
+</h5>
+<p>Contents of the object as a string or NULL if the object hasn’t been
+downloaded.</p>
+<p>The object is assumed to contain UTF-8 encoded data.</p>
+<div class="section level6">
+<h6 id="returns-18">Returns<a class="anchor" aria-label="anchor" href="#returns-18"></a>
+</h6>
+<ul>
+<li>character: Contents of the object as text.</li>
+</ul>
+</div>
+</div>
+<div class="section level5">
+<h5 id="s3_objectsize">s3_object$size()<a class="anchor" aria-label="anchor" href="#s3_objectsize"></a>
+</h5>
+<p>Size of the object in bytes.</p>
+<p>Returns NULL if the key does not correspond to an object in S3.</p>
+<div class="section level6">
+<h6 id="returns-19">Returns<a class="anchor" aria-label="anchor" href="#returns-19"></a>
+</h6>
+<ul>
+<li>integer: Size of the object in bytes, if the object exists.</li>
+</ul>
+</div>
+</div>
+<div class="section level5">
+<h5 id="s3_objecthas_info">s3_object$has_info()<a class="anchor" aria-label="anchor" href="#s3_objecthas_info"></a>
+</h5>
+<p>Returns true if this <code>s3_object</code> contains the content-type
+MIME header or user-defined metadata.</p>
+<p>If FALSE, this means that <code>content_type()</code>,
+<code>metadata()</code>, <code>range_info()</code> and
+<code>last_modified()</code> will return NULL.</p>
+<div class="section level6">
+<h6 id="returns-20">Returns<a class="anchor" aria-label="anchor" href="#returns-20"></a>
+</h6>
+<ul>
+<li>logical: TRUE if additional metadata is available.</li>
+</ul>
+</div>
+</div>
+<div class="section level5">
+<h5 id="s3_objectmetadata">s3_object$metadata()<a class="anchor" aria-label="anchor" href="#s3_objectmetadata"></a>
+</h5>
+<p>Returns a list of user-defined metadata, or NULL if no metadata is
+defined.</p>
+<div class="section level6">
+<h6 id="returns-21">Returns<a class="anchor" aria-label="anchor" href="#returns-21"></a>
+</h6>
+<ul>
+<li>list: User-defined metadata.</li>
+</ul>
+</div>
+</div>
+<div class="section level5">
+<h5 id="s3_objectcontent_type">s3_object$content_type()<a class="anchor" aria-label="anchor" href="#s3_objectcontent_type"></a>
+</h5>
+<p>Returns the content-type of the S3 object or NULL if it is not
+defined.</p>
+<div class="section level6">
+<h6 id="returns-22">Returns<a class="anchor" aria-label="anchor" href="#returns-22"></a>
+</h6>
+<ul>
+<li>character: Content type or NULL if the content type is
+undefined.</li>
+</ul>
+</div>
+</div>
+<div class="section level5">
+<h5 id="s3_objectrange_info">s3_object$range_info()<a class="anchor" aria-label="anchor" href="#s3_objectrange_info"></a>
+</h5>
+<p>If the object corresponds to a partially downloaded object, returns
+information of what was downloaded.</p>
+<p>The returned object has the following fields:</p>
+<ul>
+<li>
+<code>total_size</code>: Size of the object in S3.</li>
+<li>
+<code>request_offset</code>: The starting offset.</li>
+<li>
+<code>request_length</code>: The number of bytes downloaded.</li>
+</ul>
+</div>
+<div class="section level5">
+<h5 id="s3_objectlast_modified">s3_object$last_modified()<a class="anchor" aria-label="anchor" href="#s3_objectlast_modified"></a>
+</h5>
+<p>Returns the last modified unix timestamp of the object.</p>
+<div class="section level6">
+<h6 id="returns-23">Returns<a class="anchor" aria-label="anchor" href="#returns-23"></a>
+</h6>
+<ul>
+<li>POSIXct: Unix timestamp corresponding to the last modified
+time.</li>
+</ul>
+</div>
+</div>
+</div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

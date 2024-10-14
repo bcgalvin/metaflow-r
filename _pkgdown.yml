@@ -74,10 +74,4 @@ reference:
       Using the Metaflow S3 Client
     contents:
       - "S3"
-      - "S3Client"
-      - "S3Object"
-      - "get_s3_client"
-      - "create_s3_client"
-      - "create_s3_client_with_role"
-      - "create_s3_client_with_session"
-
+      - "s3_object"

@@ -76,7 +76,7 @@ an exception}
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-An s3_object
+An S3Object
 }
 }
 \if{html}{\out{<hr>}}
@@ -131,7 +131,7 @@ exceptions}
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-List of s3_object instances
+List of S3Object instances
 }
 }
 \if{html}{\out{<hr>}}
@@ -173,7 +173,7 @@ List the next level of paths in S3
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-List of s3_object instances
+List of S3Object instances
 }
 }
 \if{html}{\out{<hr>}}
@@ -193,7 +193,7 @@ List all objects recursively under the given prefixes
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-List of s3_object instances
+List of S3Object instances
 }
 }
 \if{html}{\out{<hr>}}
@@ -216,7 +216,7 @@ an exception}
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-An s3_object
+An S3Object
 }
 }
 \if{html}{\out{<hr>}}
@@ -239,7 +239,7 @@ exceptions}
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-List of s3_object instances
+List of S3Object instances
 }
 }
 \if{html}{\out{<hr>}}
@@ -259,7 +259,7 @@ Get all objects under the prefix set in the S3 constructor
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-List of s3_object instances
+List of S3Object instances
 }
 }
 \if{html}{\out{<hr>}}
