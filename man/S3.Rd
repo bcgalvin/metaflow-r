@@ -2,30 +2,36 @@
 % Please edit documentation in R/s3.R
 \name{S3}
 \alias{S3}
-\title{S3 Class}
+\title{R6 Class Wrapper for Metaflow S3 Client}
 \description{
-An R6 interface to Metaflow's S3 client. This class provides methods for
-interacting with S3, including connecting, listing, and retrieving objects.
-It uses the S3Client class internally for AWS authentication and client management.
+R6 Class Wrapper for Metaflow S3 Client
+
+R6 Class Wrapper for Metaflow S3 Client
+}
+\details{
+This class provides an R interface to the Metaflow S3 client functionality.
+}
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{py_s3}}{Python S3 object}
+}
+\if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-S3-new}{\code{S3$new()}}
-\item \href{#method-S3-connect}{\code{S3$connect()}}
-\item \href{#method-S3-set_role}{\code{S3$set_role()}}
-\item \href{#method-S3-set_session_vars}{\code{S3$set_session_vars()}}
-\item \href{#method-S3-set_client_params}{\code{S3$set_client_params()}}
-\item \href{#method-S3-print}{\code{S3$print()}}
 \item \href{#method-S3-get}{\code{S3$get()}}
+\item \href{#method-S3-put}{\code{S3$put()}}
 \item \href{#method-S3-get_many}{\code{S3$get_many()}}
+\item \href{#method-S3-put_many}{\code{S3$put_many()}}
 \item \href{#method-S3-list_paths}{\code{S3$list_paths()}}
 \item \href{#method-S3-list_recursive}{\code{S3$list_recursive()}}
-\item \href{#method-S3-get_recursive}{\code{S3$get_recursive()}}
+\item \href{#method-S3-info}{\code{S3$info()}}
+\item \href{#method-S3-info_many}{\code{S3$info_many()}}
 \item \href{#method-S3-get_all}{\code{S3$get_all()}}
-\item \href{#method-S3-put}{\code{S3$put()}}
-\item \href{#method-S3-put_many}{\code{S3$put_many()}}
-\item \href{#method-S3-put_files}{\code{S3$put_files()}}
+\item \href{#method-S3-close}{\code{S3$close()}}
 \item \href{#method-S3-clone}{\code{S3$clone()}}
 }
 }
@@ -33,125 +39,15 @@ It uses the S3Client class internally for AWS authentication and client manageme
 \if{html}{\out{<a id="method-S3-new"></a>}}
 \if{latex}{\out{\hypertarget{method-S3-new}{}}}
 \subsection{Method \code{new()}}{
-Create a new S3 object.
+Create a new S3Client object
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{S3$new(
-  tmproot = ".",
-  bucket = NULL,
-  prefix = NULL,
-  run = NULL,
-  s3root = NULL,
-  verbose = FALSE,
-  mf = .globals[["mf"]]
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{S3$new(...)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{tmproot}}{Character string specifying the temporary directory root.}
-
-\item{\code{bucket}}{Optional character string specifying the S3 bucket.}
-
-\item{\code{prefix}}{Optional character string specifying the S3 prefix.}
-
-\item{\code{run}}{Optional Metaflow Run object or FlowSpec.}
-
-\item{\code{s3root}}{Optional character string specifying the S3 root path.}
-
-\item{\code{verbose}}{Logical, if TRUE, print detailed error messages.}
-
-\item{\code{mf}}{Metaflow object, defaults to .globals[\link{"mf"}].}
-}
-\if{html}{\out{</div>}}
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-S3-connect"></a>}}
-\if{latex}{\out{\hypertarget{method-S3-connect}{}}}
-\subsection{Method \code{connect()}}{
-Connect to the S3 client.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{S3$connect()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-Invisible self (for method chaining).
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-S3-set_role"></a>}}
-\if{latex}{\out{\hypertarget{method-S3-set_role}{}}}
-\subsection{Method \code{set_role()}}{
-Set the AWS role for the S3 client.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{S3$set_role(role)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{role}}{Character string specifying the AWS role ARN.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Invisible self (for method chaining).
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-S3-set_session_vars"></a>}}
-\if{latex}{\out{\hypertarget{method-S3-set_session_vars}{}}}
-\subsection{Method \code{set_session_vars()}}{
-Set the session variables for the S3 client.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{S3$set_session_vars(session_vars)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{session_vars}}{List of session variables.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Invisible self (for method chaining).
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-S3-set_client_params"></a>}}
-\if{latex}{\out{\hypertarget{method-S3-set_client_params}{}}}
-\subsection{Method \code{set_client_params()}}{
-Set the client parameters for the S3 client.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{S3$set_client_params(client_params)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{client_params}}{List of client parameters.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Invisible self (for method chaining).
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-S3-print"></a>}}
-\if{latex}{\out{\hypertarget{method-S3-print}{}}}
-\subsection{Method \code{print()}}{
-Print method for S3 objects.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{S3$print(...)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Additional arguments passed to print (unused).}
+\item{\code{...}}{Additional arguments passed to the Python S3 constructor}
 }
 \if{html}{\out{</div>}}
 }
@@ -162,29 +58,62 @@ Print method for S3 objects.
 \subsection{Method \code{get()}}{
 Get a single object from S3
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{S3$get(key = NULL, return_missing = FALSE, return_info = TRUE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{S3$get(key, return_missing = FALSE, return_info = TRUE, ...)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{key}}{Character string or S3GetObject representing the S3 key}
+\item{\code{key}}{Object key}
 
-\item{\code{return_missing}}{Logical, if TRUE, return missing keys as S3Objects with exists = FALSE}
+\item{\code{return_missing}}{If TRUE, return a missing object instead of raising
+an exception}
 
-\item{\code{return_info}}{Logical, if TRUE, fetch content-type and user metadata}
+\item{\code{return_info}}{If TRUE, fetch content-type and user metadata}
+
+\item{\code{...}}{Additional arguments passed to the Python get method}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-An S3Object
+An s3_object
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-S3-put"></a>}}
+\if{latex}{\out{\hypertarget{method-S3-put}{}}}
+\subsection{Method \code{put()}}{
+Put a single object to S3
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{S3$put(key, obj, overwrite = TRUE, content_type = NULL, metadata = NULL, ...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{key}}{Object key}
+
+\item{\code{obj}}{Object to store}
+
+\item{\code{overwrite}}{If TRUE, overwrite existing object}
+
+\item{\code{content_type}}{MIME type for the object}
+
+\item{\code{metadata}}{A list of additional headers to be stored as metadata}
+
+\item{\code{...}}{Additional arguments passed to the Python put method}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+URL of the stored object
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-S3-get_many"></a>}}
 \if{latex}{\out{\hypertarget{method-S3-get_many}{}}}
 \subsection{Method \code{get_many()}}{
-Get multiple objects from S3
+Get many objects from S3 in parallel
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{S3$get_many(keys, return_missing = FALSE, return_info = TRUE)}\if{html}{\out{</div>}}
 }
@@ -192,23 +121,46 @@ Get multiple objects from S3
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{keys}}{Character vector or list of S3GetObjects representing the S3 keys}
+\item{\code{keys}}{List of object keys}
 
-\item{\code{return_missing}}{Logical, if TRUE, return missing keys as S3Objects with exists = FALSE}
+\item{\code{return_missing}}{If TRUE, return missing objects instead of raising
+exceptions}
 
-\item{\code{return_info}}{Logical, if TRUE, fetch content-type and user metadata}
+\item{\code{return_info}}{If TRUE, fetch content-type and user metadata}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A list of S3Objects
+List of s3_object instances
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-S3-put_many"></a>}}
+\if{latex}{\out{\hypertarget{method-S3-put_many}{}}}
+\subsection{Method \code{put_many()}}{
+Put many objects to S3
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{S3$put_many(key_objs, overwrite = TRUE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{key_objs}}{List of key-object pairs or S3PutObjects}
+
+\item{\code{overwrite}}{If TRUE, overwrite existing objects}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+List of (key, url) pairs for uploaded objects
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-S3-list_paths"></a>}}
 \if{latex}{\out{\hypertarget{method-S3-list_paths}{}}}
 \subsection{Method \code{list_paths()}}{
-List the next level of paths in S3.
+List the next level of paths in S3
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{S3$list_paths(keys = NULL)}\if{html}{\out{</div>}}
 }
@@ -216,19 +168,19 @@ List the next level of paths in S3.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{keys}}{Optional character vector of keys to list. If NULL, lists from the S3 root.}
+\item{\code{keys}}{List of paths to list}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A list of \code{S3Object} representations.
+List of s3_object instances
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-S3-list_recursive"></a>}}
 \if{latex}{\out{\hypertarget{method-S3-list_recursive}{}}}
 \subsection{Method \code{list_recursive()}}{
-List all objects recursively under the given prefixes.
+List all objects recursively under the given prefixes
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{S3$list_recursive(keys = NULL)}\if{html}{\out{</div>}}
 }
@@ -236,34 +188,58 @@ List all objects recursively under the given prefixes.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{keys}}{Optional character vector of keys to list. If NULL, lists from the S3 root.}
+\item{\code{keys}}{List of prefixes to list}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A list of \code{S3Object} representations.
+List of s3_object instances
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-S3-get_recursive"></a>}}
-\if{latex}{\out{\hypertarget{method-S3-get_recursive}{}}}
-\subsection{Method \code{get_recursive()}}{
-Get objects from S3 recursively
+\if{html}{\out{<a id="method-S3-info"></a>}}
+\if{latex}{\out{\hypertarget{method-S3-info}{}}}
+\subsection{Method \code{info()}}{
+Get metadata about a single object in S3
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{S3$get_recursive(keys, return_info = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{S3$info(key = NULL, return_missing = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{keys}}{Character vector of keys or prefixes to download recursively}
+\item{\code{key}}{Object key}
 
-\item{\code{return_info}}{Logical, if TRUE, fetch content-type and user metadata}
+\item{\code{return_missing}}{If TRUE, return a missing object instead of raising
+an exception}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A list of S3Objects
+An s3_object
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-S3-info_many"></a>}}
+\if{latex}{\out{\hypertarget{method-S3-info_many}{}}}
+\subsection{Method \code{info_many()}}{
+Get metadata about many objects in S3 in parallel
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{S3$info_many(keys, return_missing = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{keys}}{List of object keys}
+
+\item{\code{return_missing}}{If TRUE, return missing objects instead of raising
+exceptions}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+List of s3_object instances
 }
 }
 \if{html}{\out{<hr>}}
@@ -278,85 +254,23 @@ Get all objects under the prefix set in the S3 constructor
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{return_info}}{Logical, if TRUE, fetch content-type and user metadata}
+\item{\code{return_info}}{If TRUE, fetch content-type and user metadata}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A list of S3Objects
+List of s3_object instances
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-S3-put"></a>}}
-\if{latex}{\out{\hypertarget{method-S3-put}{}}}
-\subsection{Method \code{put()}}{
-Put a single object to S3
+\if{html}{\out{<a id="method-S3-close"></a>}}
+\if{latex}{\out{\hypertarget{method-S3-close}{}}}
+\subsection{Method \code{close()}}{
+Close the S3 client and delete temporary files
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{S3$put(key, obj, overwrite = TRUE, content_type = NULL, metadata = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{S3$close()}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{key}}{Character string or S3PutObject representing the S3 key}
-
-\item{\code{obj}}{Object to store in S3}
-
-\item{\code{overwrite}}{Logical, if TRUE, overwrite existing object}
-
-\item{\code{content_type}}{Optional MIME type for the object}
-
-\item{\code{metadata}}{Optional list of metadata to store with the object}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Character string of the URL of the stored object
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-S3-put_many"></a>}}
-\if{latex}{\out{\hypertarget{method-S3-put_many}{}}}
-\subsection{Method \code{put_many()}}{
-Put multiple objects to S3
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{S3$put_many(key_objs, overwrite = TRUE)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{key_objs}}{List of key-object pairs or S3PutObjects}
-
-\item{\code{overwrite}}{Logical, if TRUE, overwrite existing objects}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List of character vectors, each containing key and URL of stored object
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-S3-put_files"></a>}}
-\if{latex}{\out{\hypertarget{method-S3-put_files}{}}}
-\subsection{Method \code{put_files()}}{
-Put multiple files to S3
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{S3$put_files(key_paths, overwrite = TRUE)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{key_paths}}{List of key-path pairs or S3PutObjects}
-
-\item{\code{overwrite}}{Logical, if TRUE, overwrite existing objects}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List of character vectors, each containing key and URL of stored object
-}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-S3-clone"></a>}}
