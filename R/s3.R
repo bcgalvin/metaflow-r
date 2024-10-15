@@ -13,7 +13,7 @@ S3 <- R6::R6Class(
     #' Create a new S3Client object
     #' @param ... Additional arguments passed to the Python S3 constructor
     initialize = function(...) {
-      if (!py_module_available("metaflow")) {
+      if (!reticulate::py_module_available("metaflow")) {
         cli::cli_abort("The 'metaflow' Python module is not available. Please install it.")
       }
       metaflow <- reticulate::import("metaflow", delay_load = TRUE)
@@ -35,10 +35,10 @@ S3 <- R6::R6Class(
         return_info = return_info,
         ...
       )
-      if (identical(py_obj, py_none())) {
+      if (identical(py_obj, reticulate::py_none())) {
         return(NULL)
       }
-      S3Object$new(py_to_r(py_obj))
+      S3Object$new(reticulate::py_to_r(py_obj))
     },
 
     #' @description
@@ -52,10 +52,10 @@ S3 <- R6::R6Class(
     #' @return URL of the stored object
     put = function(key, obj, overwrite = TRUE, content_type = NULL,
                    metadata = NULL, ...) {
-      py_call(self$py_s3$put, key, r_to_py(obj),
+      reticulate::py_call(self$py_s3$put, key, reticulate::r_to_py(obj),
         overwrite = overwrite,
         content_type = content_type,
-        metadata = r_to_py(metadata),
+        metadata = reticulate::r_to_py(metadata),
         ...
       )
     },
@@ -144,6 +144,32 @@ S3 <- R6::R6Class(
     get_all = function(return_info = FALSE) {
       py_objs <- self$py_s3$get_all(return_info = return_info)
       purrr::map(py_objs, S3Object$new)
+    },
+
+    #' @description
+    #' Get many objects from S3 recursively in parallel
+    #' @param keys List of prefixes to download recursively
+    #' @param return_info If TRUE, fetch content-type and user metadata
+    #' @return List of S3Object instances
+    get_recursive = function(keys, return_info = FALSE) {
+      py_objs <- self$py_s3$get_recursive(keys, return_info = return_info)
+      purrr::map(py_objs, S3Object$new)
+    },
+
+    #' @description
+    #' Upload many local files to S3
+    #' @param key_paths List of key-path pairs or S3PutObjects
+    #' @param overwrite If TRUE, overwrite existing objects
+    #' @return List of (key, url) pairs for uploaded files
+    put_files = function(key_paths, overwrite = TRUE) {
+      # Convert R list to Python list of tuples or S3PutObjects
+      py_key_paths <- reticulate::r_to_py(key_paths)
+
+      # Call the Python method
+      result <- self$py_s3$put_files(py_key_paths, overwrite = overwrite)
+
+      # Convert the result back to R
+      reticulate::py_to_r(result)
     },
 
     #' @description
@@ -248,9 +274,10 @@ S3Object <- R6::R6Class(
 
     #' @description
     #' Get the content of the S3 object as a byte string
-    #' @return Content as raw bytes
+    #' @return The decoded content of the Python bytes object
+    #' @note This method uses `decode()` on the Python bytes object.
     blob = function() {
-      self$py_obj$blob
+      self$py_obj$blob$decode()
     },
 
     #' @description
