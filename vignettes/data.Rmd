@@ -1,0 +1,298 @@
+---
+title: "Loading and Storing Data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Loading and Storing Data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Store and load objects to/from a known S3 location
+
+The examples below demonstrate how to use the Metaflow S3 client in R. You can load data that has nothing to do with Metaflow as follows:
+
+```r
+library(metaflow)
+
+s3 <- S3$new()
+res <- s3$get('s3://my-bucket/savin/tmp/external_data')
+cat('an alien message:', res$text(), '\n')
+
+# Output:
+# an alien message: I know nothing about Metaflow
+```
+
+If `S3` is initialized without any arguments, all operations require a full S3 URL.
+
+If you need to operate on multiple files, it may be more convenient to specify a custom S3 prefix with the `s3root` argument:
+
+```r
+library(metaflow)
+
+s3 <- S3$new(s3root='s3://my-bucket/savin/tmp/s3demo/')
+s3$put('fruit', 'pineapple')
+s3$put('animal', 'mongoose')
+
+s3_2 <- S3$new()
+cat(s3_2$get('s3://my-bucket/savin/tmp/s3demo/fruit')$text(), '\n')
+
+# Output:
+# pineapple
+```
+
+If the requested URL does not exist, the `get` call will raise an exception. You can call `get` with `return_missing=TRUE` if you want to return a missing URL as an ordinary result object, as described in the section below.
+
+By default, `put_*` calls will overwrite existing keys in S3. To avoid this behavior you can invoke your `put_*` calls with `overwrite=FALSE`. Refer to the "Caution: Overwriting data in S3" section for some of the pitfalls involved with overwriting keys in S3.
+
+## The S3 result object
+
+All `get` operations return an `S3Object`, backed by a temporary file on local disk, which exposes a number of attributes about the object:
+
+```r
+library(metaflow)
+
+s3 <- S3$new(s3root='s3://my-bucket/savin/tmp/s3demo/')
+s3obj <- s3$get('fruit')
+
+cat('location', s3obj$url(), '\n')
+cat('key', s3obj$key(), '\n')
+cat('size', s3obj$size(), '\n')
+cat('local path', s3obj$path(), '\n')
+cat('bytes', s3obj$blob(), '\n')
+cat('unicode', s3obj$text(), '\n')
+cat('metadata', s3obj$metadata(), '\n')
+cat('content-type', s3obj$content_type(), '\n')
+cat('downloaded', s3obj$downloaded(), '\n')
+
+# Output:
+# location s3://my-bucket/savin/tmp/s3demo/fruit
+# key fruit
+# size 9
+# local path /data/metaflow/metaflow.s3.5agi129m/metaflow.s3.one_file.pih_iseg
+# bytes b'pineapple'
+# unicode pineapple
+# metadata NULL
+# content-type application/octet-stream
+# downloaded TRUE
+```
+
+The `S3Object` may also refer to an S3 URL that does not correspond to an object in S3. These objects have `exists()` method returning `FALSE`. Non-existent objects may be returned by a `list_paths` call, if the result refers to an S3 prefix, not an object. Listing operations also set `downloaded()` method to return `FALSE`, to distinguish them from operations that download data locally. Also `get` and `get_many` may return non-existent objects if you call these methods with an argument `return_missing=TRUE`.
+
+### Querying objects without downloading them
+
+The above information about an object, like `size()` and `metadata()`, can be useful even without downloading the file itself. To just get the metadata, use the `info` and `info_many` calls that work like `get` and `get_many` but avoid the potentially expensive downloading part. The info calls set `downloaded()` to return `FALSE` in the result object.
+
+## Operations on multiple objects
+
+After you have instantiated the object given the right context information, all `get` and `put` operations work equally. The context is only used to construct an appropriate S3 URL.
+
+Besides loading individual files with `$get()` and `$put()` as shown above, `metaflow::S3` really shines at operating on multiple files at once.
+
+It is guaranteed that the list of `S3Object`s returned is always in the same order as long as the underlying data does not change. This can be important e.g. if you use `metaflow::S3` to feed data for a model. The input data will be in a deterministic order so results should be easily reproducible.
+
+### Load multiple objects in parallel
+
+Use `get_many()` to load arbitrarily many objects at once:
+
+```r
+library(metaflow)
+
+s3 <- S3$new(s3root='s3://my-bucket/savin/tmp/s3demo/')
+objects <- s3$get_many(c('fruit', 'animal'))
+
+# objects is a list of S3Object instances
+```
+
+Here, `get_many()` loads objects in parallel, which is much faster than loading individual objects sequentially. You can achieve the optimal throughput with S3 only when you operate on many files in parallel.
+
+If one of the requested URLs doesn't exist, the `get_many` call will raise an exception. If you don't want to fail all objects because of missing URLs, call `get_many` with `return_missing=TRUE`. This will make `get_many` return missing URLs amongst other results. You can distinguish between the found and not found URLs using the `exists()` method of `S3Object`.
+
+### Load all objects recursively under a prefix
+
+We can load all objects under a given prefix:
+
+```r
+library(metaflow)
+
+s3 <- S3$new()
+objects <- s3$get_recursive(c('s3://my-bucket/savin/tmp/s3demo'))
+
+# objects is a list of S3Object instances
+```
+
+Note that `get_recursive` takes a list of prefixes. This is useful for achieving the maximum level of parallelism when retrieving data under multiple prefixes.
+
+If you have specified a custom `s3root`, you can use `get_all()` to get all files recursively under the given prefix.
+
+### Loading parts of files
+
+A performance-sensitive application may want to read only a part of a large file. Instead of a string, the `get` and `get_many` calls also accept an object with `key`, `offset`, `length` attributes that specify a part of a file to download. You can use a list with these attributes for this purpose in R.
+
+This example loads two 1KB chunks of a file in S3:
+
+```r
+library(metaflow)
+
+URL <- 's3://ursa-labs-taxi-data/2014/12/data.parquet'
+
+s3 <- S3$new()
+res <- s3$get_many(list(
+  list(key=URL, offset=0, length=1024),
+  list(key=URL, offset=1024, length=1024)
+))
+
+for (obj in res) {
+  cat(obj$path(), obj$size(), '\n')
+}
+```
+
+### Store multiple objects or files
+
+If you need to store multiple objects, use `put_many`:
+
+```r
+library(metaflow)
+
+many <- list(first_key = 'foo', second_key = 'bar')
+s3 <- S3$new(s3root='s3://my-bucket/savin/tmp/s3demo_put/')
+result <- s3$put_many(many)
+
+# result is a list of (key, url) pairs for uploaded objects
+```
+
+You may want to store more data to S3 than what you can fit in memory at once. This is a good use case for `put_files`:
+
+```r
+library(metaflow)
+
+writeLines('first datum', '/tmp/1')
+writeLines('second datum', '/tmp/2')
+
+s3 <- S3$new(s3root='s3://my-bucket/savin/tmp/s3demo_put/')
+result <- s3$put_files(list(
+  list(key='first_file', path='/tmp/1'),
+  list(key='second_file', path='/tmp/2')
+))
+
+# result is a list of (key, url) pairs for uploaded files
+```
+
+Objects are stored in S3 in parallel for maximum throughput.
+
+### Listing objects in S3
+
+To get objects with `get` and `get_many`, you need to know the exact names of the objects to download. S3 is optimized for looking up specific names, so it is preferable to structure your code around known names. However, sometimes this is not possible and you need to check first what is available in S3.
+
+Metaflow provides two ways to list objects in S3: `list_paths` and `list_recursive`. The first method provides the next level of prefixes (directories) in S3, directly under the given prefix. The latter method provides all objects under the given prefix. Since `list_paths` returns a subset of prefixes returned by `list_recursive`, it is typically a much faster operation.
+
+Here's an example: First, let's create files in S3 in a hierarchy like this:
+
+```
+first/a/object1
+first/b/x/object2
+second/c/object3
+```
+
+```r
+library(metaflow)
+
+many <- list(
+  'first/a/object1' = 'data',
+  'first/b/x/object2' = 'data',
+  'second/c/object3' = 'data'
+)
+
+s3 <- S3$new(s3root='s3://my-bucket/savin/tmp/s3demo_list/')
+s3$put_many(many)
+```
+
+Next, let's list all directories using `list_paths`:
+
+```r
+library(metaflow)
+
+s3 <- S3$new(s3root='s3://my-bucket/savin/tmp/s3demo_list/')
+keys <- s3$list_paths()
+
+for (key in keys) {
+  cat(key$key(), '\n')
+}
+
+# Output:
+# first
+# second
+```
+
+You can list multiple prefixes in parallel by giving `list_paths` a list of prefixes:
+
+```r
+library(metaflow)
+
+s3 <- S3$new(s3root='s3://my-bucket/savin/tmp/s3demo_list/')
+keys <- s3$list_paths(c('first', 'second'))
+
+for (key in keys) {
+  cat(key$key(), '\n')
+}
+
+# Output:
+# a
+# b
+# c
+```
+
+Listing may return either prefixes (directories) or objects. To distinguish between the two, use the `exists()` method of the returned `S3Object`:
+
+```r
+library(metaflow)
+
+s3 <- S3$new(s3root='s3://my-bucket/savin/tmp/s3demo_list/')
+keys <- s3$list_paths(c('first/a', 'first/b'))
+
+for (key in keys) {
+  cat(key$key(), if (key$exists()) 'object' else 'prefix', '\n')
+}
+
+# Output:
+# object1 object
+# x prefix
+```
+
+If you want all objects under the given prefix, use the `list_recursive` method:
+
+```r
+library(metaflow)
+
+s3 <- S3$new(s3root='s3://my-bucket/savin/tmp/s3demo_list/')
+keys <- s3$list_recursive()
+
+for (key in keys) {
+  cat(key$key(), '\n')
+}
+
+# Output:
+# first/a/object1
+# first/b/x/object2
+# second/c/object3
+```
+
+Similar to `list_paths`, `list_recursive` can take a list of prefixes to process in parallel.
+
+A common pattern is to list objects using either `list_paths` or `list_recursive`, filter out some keys from the listing, and provide the pruned list to `get_many` for fast parallelized downloading.
+
+## Caution: Overwriting data in S3
+
+You should avoid overwriting data in the same key (URL) in S3. S3 guarantees that new keys always reflect the latest data. In contrast, when you overwrite data in an existing key, there is a short period of time when a reader may see either the old version or the new version of the data.
+
+In particular, when you use `metaflow::S3` in your Metaflow flows, make sure that every task and step writes to a unique key. Otherwise you may find results unpredictable and inconsistent.
+
+Note that specifying `overwrite=FALSE` in your `put_*` calls changes the behavior of S3 slightly compared to the default mode of `overwrite=TRUE`. There may be a small delay (typically in the order of milliseconds) before the key becomes available for reading.
+
+This is an important reason to rely on Metaflow artifacts, which handle this complication for you, whenever possible. If you absolutely need to handle this by yourself, one way to guarantee uniqueness is to use `current$task_id` from the `current` module as a part of your S3 keys.

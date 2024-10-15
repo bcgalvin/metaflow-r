@@ -68,6 +68,8 @@ R6 Class Wrapper for Metaflow S3 Client"><meta property="og:image" content="http
 <li><p><a href="#method-S3-info"><code>S3$info()</code></a></p></li>
 <li><p><a href="#method-S3-info_many"><code>S3$info_many()</code></a></p></li>
 <li><p><a href="#method-S3-get_all"><code>S3$get_all()</code></a></p></li>
+<li><p><a href="#method-S3-get_recursive"><code>S3$get_recursive()</code></a></p></li>
+<li><p><a href="#method-S3-put_files"><code>S3$put_files()</code></a></p></li>
 <li><p><a href="#method-S3-close"><code>S3$close()</code></a></p></li>
 <li><p><a href="#method-S3-clone"><code>S3$clone()</code></a></p></li>
 </ul></div><p></p><hr><a id="method-S3-new"></a><div class="section">
@@ -322,10 +324,58 @@ exceptions</p></dd>
 <p>List of S3Object instances</p>
 </div>
 
+</div><p></p><hr><a id="method-S3-get_recursive"></a><div class="section">
+<h3 id="method-get-recursive-">Method <code>get_recursive()</code><a class="anchor" aria-label="anchor" href="#method-get-recursive-"></a></h3>
+<p>Get many objects from S3 recursively in parallel</p><div class="section">
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">S3</span><span class="op">$</span><span class="fu">get_recursive</span><span class="op">(</span><span class="va">keys</span>, return_info <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>keys</code></dt>
+<dd><p>List of prefixes to download recursively</p></dd>
+
+
+<dt><code>return_info</code></dt>
+<dd><p>If TRUE, fetch content-type and user metadata</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<p>List of S3Object instances</p>
+</div>
+
+</div><p></p><hr><a id="method-S3-put_files"></a><div class="section">
+<h3 id="method-put-files-">Method <code>put_files()</code><a class="anchor" aria-label="anchor" href="#method-put-files-"></a></h3>
+<p>Upload many local files to S3</p><div class="section">
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">S3</span><span class="op">$</span><span class="fu">put_files</span><span class="op">(</span><span class="va">key_paths</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>key_paths</code></dt>
+<dd><p>List of key-path pairs or S3PutObjects</p></dd>
+
+
+<dt><code>overwrite</code></dt>
+<dd><p>If TRUE, overwrite existing objects</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<p>List of (key, url) pairs for uploaded files</p>
+</div>
+
 </div><p></p><hr><a id="method-S3-close"></a><div class="section">
 <h3 id="method-close-">Method <code><a href="https://rdrr.io/r/base/connections.html" class="external-link">close()</a></code><a class="anchor" aria-label="anchor" href="#method-close-"></a></h3>
 <p>Close the S3 client and delete temporary files</p><div class="section">
-<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">S3</span><span class="op">$</span><span class="fu">close</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -333,12 +383,12 @@ exceptions</p></dd>
 </div><p></p><hr><a id="method-S3-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">S3</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

@@ -31,6 +31,8 @@ This class provides an R interface to the Metaflow S3 client functionality.
 \item \href{#method-S3-info}{\code{S3$info()}}
 \item \href{#method-S3-info_many}{\code{S3$info_many()}}
 \item \href{#method-S3-get_all}{\code{S3$get_all()}}
+\item \href{#method-S3-get_recursive}{\code{S3$get_recursive()}}
+\item \href{#method-S3-put_files}{\code{S3$put_files()}}
 \item \href{#method-S3-close}{\code{S3$close()}}
 \item \href{#method-S3-clone}{\code{S3$clone()}}
 }
@@ -260,6 +262,50 @@ Get all objects under the prefix set in the S3 constructor
 }
 \subsection{Returns}{
 List of S3Object instances
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-S3-get_recursive"></a>}}
+\if{latex}{\out{\hypertarget{method-S3-get_recursive}{}}}
+\subsection{Method \code{get_recursive()}}{
+Get many objects from S3 recursively in parallel
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{S3$get_recursive(keys, return_info = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{keys}}{List of prefixes to download recursively}
+
+\item{\code{return_info}}{If TRUE, fetch content-type and user metadata}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+List of S3Object instances
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-S3-put_files"></a>}}
+\if{latex}{\out{\hypertarget{method-S3-put_files}{}}}
+\subsection{Method \code{put_files()}}{
+Upload many local files to S3
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{S3$put_files(key_paths, overwrite = TRUE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{key_paths}}{List of key-path pairs or S3PutObjects}
+
+\item{\code{overwrite}}{If TRUE, overwrite existing objects}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+List of (key, url) pairs for uploaded files
 }
 }
 \if{html}{\out{<hr>}}

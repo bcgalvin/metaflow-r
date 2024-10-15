@@ -12,6 +12,8 @@ R6 Class Wrapper for Metaflow S3Object
 This class represents an S3 object returned by the s3_client.
 }
 \note{
+This method uses \code{decode()} on the Python bytes object.
+
 This is a read-only property. It cannot be set directly.
 }
 \examples{
@@ -195,7 +197,7 @@ Get the content of the S3 object as a byte string
 }
 
 \subsection{Returns}{
-Content as raw bytes
+The decoded content of the Python bytes object
 }
 }
 \if{html}{\out{<hr>}}

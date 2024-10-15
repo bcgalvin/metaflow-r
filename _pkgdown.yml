@@ -45,9 +45,14 @@ articles:
       Configuring Metaflow profiles and settings
     contents:
       - configure-metaflow
-  - title: "Metaflow S3 Client"
+  - title: "Loading and Storing Data"
     desc: >
       Using the Metaflow S3 Client
+    contents:
+      - data
+  - title: "S3 API"
+    desc: >
+      Metaflow S3 API
     contents:
       - s3-client
 reference:
