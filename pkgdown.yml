@@ -3,9 +3,10 @@ pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   configure-metaflow: configure-metaflow.html
+  data: data.html
   install-metaflow: install-metaflow.html
   s3-client: s3-client.html
-last_built: 2024-10-14T05:20Z
+last_built: 2024-10-15T02:29Z
 urls:
   reference: https://bcgalvin.github.io/metaflow-r/reference
   article: https://bcgalvin.github.io/metaflow-r/articles

@@ -46,7 +46,8 @@ R6 Class Wrapper for Metaflow S3Object"><meta property="og:image" content="https
     </div>
     <div class="section level2">
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
-    <p>This is a read-only property. It cannot be set directly.</p>
+    <p>This method uses <code>decode()</code> on the Python bytes object.</p>
+<p>This is a read-only property. It cannot be set directly.</p>
     </div>
     <div class="section level2">
     <h2 id="public-fields">Public fields<a class="anchor" aria-label="anchor" href="#public-fields"></a></h2>
@@ -208,7 +209,7 @@ s3obj$convert_bool("not a boolean")  # Throws an error
 
 <div class="section">
 <h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
-<p>Content as raw bytes</p>
+<p>The decoded content of the Python bytes object</p>
 </div>
 
 </div><p></p><hr><a id="method-S3Object-content_type"></a><div class="section">
