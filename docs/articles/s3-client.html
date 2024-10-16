@@ -549,7 +549,7 @@ local copy.</p>
 <p><code>s3_object</code> instances are not instantiated directly, but
 they are returned by many methods of the <code>S3</code> R6 class.</p>
 <div class="section level5">
-<h5 id="s3_objectexists">s3_object$exists()<a class="anchor" aria-label="anchor" href="#s3_objectexists"></a>
+<h5 id="s3_objectexists">s3_object$exists<a class="anchor" aria-label="anchor" href="#s3_objectexists"></a>
 </h5>
 <p>Does this key correspond to an object in S3?</p>
 <div class="section level6">
@@ -562,7 +562,7 @@ S3.</li>
 </div>
 </div>
 <div class="section level5">
-<h5 id="s3_objectdownloaded">s3_object$downloaded()<a class="anchor" aria-label="anchor" href="#s3_objectdownloaded"></a>
+<h5 id="s3_objectdownloaded">s3_object$downloaded<a class="anchor" aria-label="anchor" href="#s3_objectdownloaded"></a>
 </h5>
 <p>Has this object been downloaded?</p>
 <p>If TRUE, the contents can be accessed through <code>path()</code>,
@@ -577,7 +577,7 @@ downloaded.</li>
 </div>
 </div>
 <div class="section level5">
-<h5 id="s3_objecturl">s3_object$url()<a class="anchor" aria-label="anchor" href="#s3_objecturl"></a>
+<h5 id="s3_objecturl">s3_object$url<a class="anchor" aria-label="anchor" href="#s3_objecturl"></a>
 </h5>
 <p>S3 location of the object</p>
 <div class="section level6">
@@ -589,7 +589,7 @@ downloaded.</li>
 </div>
 </div>
 <div class="section level5">
-<h5 id="s3_objectprefix">s3_object$prefix()<a class="anchor" aria-label="anchor" href="#s3_objectprefix"></a>
+<h5 id="s3_objectprefix">s3_object$prefix<a class="anchor" aria-label="anchor" href="#s3_objectprefix"></a>
 </h5>
 <p>Prefix requested that matches this object.</p>
 <div class="section level6">
@@ -601,7 +601,7 @@ downloaded.</li>
 </div>
 </div>
 <div class="section level5">
-<h5 id="s3_objectkey">s3_object$key()<a class="anchor" aria-label="anchor" href="#s3_objectkey"></a>
+<h5 id="s3_objectkey">s3_object$key<a class="anchor" aria-label="anchor" href="#s3_objectkey"></a>
 </h5>
 <p>Key corresponds to the key given to the get call that produced this
 object.</p>
@@ -616,7 +616,7 @@ requested.</p>
 </div>
 </div>
 <div class="section level5">
-<h5 id="s3_objectpath">s3_object$path()<a class="anchor" aria-label="anchor" href="#s3_objectpath"></a>
+<h5 id="s3_objectpath">s3_object$path<a class="anchor" aria-label="anchor" href="#s3_objectpath"></a>
 </h5>
 <p>Path to a local temporary file corresponding to the object
 downloaded.</p>
@@ -631,7 +631,7 @@ NULL if this s3_object has not been downloaded.</p>
 </div>
 </div>
 <div class="section level5">
-<h5 id="s3_objectblob">s3_object$blob()<a class="anchor" aria-label="anchor" href="#s3_objectblob"></a>
+<h5 id="s3_objectblob">s3_object$blob<a class="anchor" aria-label="anchor" href="#s3_objectblob"></a>
 </h5>
 <p>Contents of the object as a byte string or NULL if the object hasn’t
 been downloaded.</p>
@@ -644,7 +644,7 @@ been downloaded.</p>
 </div>
 </div>
 <div class="section level5">
-<h5 id="s3_objecttext">s3_object$text()<a class="anchor" aria-label="anchor" href="#s3_objecttext"></a>
+<h5 id="s3_objecttext">s3_object$text<a class="anchor" aria-label="anchor" href="#s3_objecttext"></a>
 </h5>
 <p>Contents of the object as a string or NULL if the object hasn’t been
 downloaded.</p>
@@ -658,7 +658,7 @@ downloaded.</p>
 </div>
 </div>
 <div class="section level5">
-<h5 id="s3_objectsize">s3_object$size()<a class="anchor" aria-label="anchor" href="#s3_objectsize"></a>
+<h5 id="s3_objectsize">s3_object$size<a class="anchor" aria-label="anchor" href="#s3_objectsize"></a>
 </h5>
 <p>Size of the object in bytes.</p>
 <p>Returns NULL if the key does not correspond to an object in S3.</p>
@@ -671,7 +671,7 @@ downloaded.</p>
 </div>
 </div>
 <div class="section level5">
-<h5 id="s3_objecthas_info">s3_object$has_info()<a class="anchor" aria-label="anchor" href="#s3_objecthas_info"></a>
+<h5 id="s3_objecthas_info">s3_object$has_info<a class="anchor" aria-label="anchor" href="#s3_objecthas_info"></a>
 </h5>
 <p>Returns true if this <code>s3_object</code> contains the content-type
 MIME header or user-defined metadata.</p>
@@ -687,7 +687,7 @@ MIME header or user-defined metadata.</p>
 </div>
 </div>
 <div class="section level5">
-<h5 id="s3_objectmetadata">s3_object$metadata()<a class="anchor" aria-label="anchor" href="#s3_objectmetadata"></a>
+<h5 id="s3_objectmetadata">s3_object$metadata<a class="anchor" aria-label="anchor" href="#s3_objectmetadata"></a>
 </h5>
 <p>Returns a list of user-defined metadata, or NULL if no metadata is
 defined.</p>
@@ -700,7 +700,7 @@ defined.</p>
 </div>
 </div>
 <div class="section level5">
-<h5 id="s3_objectcontent_type">s3_object$content_type()<a class="anchor" aria-label="anchor" href="#s3_objectcontent_type"></a>
+<h5 id="s3_objectcontent_type">s3_object$content_type<a class="anchor" aria-label="anchor" href="#s3_objectcontent_type"></a>
 </h5>
 <p>Returns the content-type of the S3 object or NULL if it is not
 defined.</p>
@@ -714,7 +714,7 @@ undefined.</li>
 </div>
 </div>
 <div class="section level5">
-<h5 id="s3_objectrange_info">s3_object$range_info()<a class="anchor" aria-label="anchor" href="#s3_objectrange_info"></a>
+<h5 id="s3_objectrange_info">s3_object$range_info<a class="anchor" aria-label="anchor" href="#s3_objectrange_info"></a>
 </h5>
 <p>If the object corresponds to a partially downloaded object, returns
 information of what was downloaded.</p>
@@ -729,7 +729,7 @@ information of what was downloaded.</p>
 </ul>
 </div>
 <div class="section level5">
-<h5 id="s3_objectlast_modified">s3_object$last_modified()<a class="anchor" aria-label="anchor" href="#s3_objectlast_modified"></a>
+<h5 id="s3_objectlast_modified">s3_object$last_modified<a class="anchor" aria-label="anchor" href="#s3_objectlast_modified"></a>
 </h5>
 <p>Returns the last modified unix timestamp of the object.</p>
 <div class="section level6">

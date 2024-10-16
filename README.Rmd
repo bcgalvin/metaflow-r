@@ -63,39 +63,47 @@ update_profile(path = "/path/to/profile.json")
 
 ### S3 Client
 
-The interface for the metaflow S3 client is implemented with R6 classes but there will be a more user-friendly interface built on top soon.
+The metaflow S3 client is now fully implemented with R6 classes but there will be a more R-friendly interface for this soon. Check out the vignettes for the R equivalents to the metaflow s3 client python docs.
 
-```r
-# Create a new S3Client
-s3_client <- create_s3_client(tmproot = ".", bucket = "my-bucket", prefix = "my-prefix")
+``` r
+library(metaflow)
 
-# Connect to S3
-s3_client$connect()
+s3 <- S3$new(s3root='s3://metaflow-r-s3/tmp/s3demo/')
+s3obj <- s3$get('fruit')
+# > s3obj
+# S3 Object:
+#   URL: s3://metaflow-r-s3/tmp/s3demo/fruit 
+#   Key: fruit 
+#   Prefix: s3://metaflow-r-s3/tmp/s3demo 
+#   Size: 9 bytes
+#   Exists: TRUE 
+#   Downloaded: TRUE 
+#   Content Type: binary/octet-stream 
+#   Last Modified: 2024-10-15 16:23:46 
+#   Has Info: TRUE 
+#   Encryption: AES256 
 
-# List objects in the root of the S3 path
-root_objects <- s3_client$list_paths()
+cat('location', s3obj$url, '\n')
+cat('key', s3obj$key, '\n')
+cat('size', s3obj$size, '\n')
+cat('local path', s3obj$path, '\n')
+cat("bytes", as.character(s3obj$blob), "\n") # return is really a python bytes object but can't cat it 
+cat('unicode', s3obj$text, '\n')
+cat('metadata', s3obj$metadata, '\n')
+cat('content-type', s3obj$content_type, '\n')
+cat('downloaded', s3obj$downloaded, '\n')
+# location s3://metaflow-r-s3/tmp/s3demo/fruit 
+# key fruit 
+# size 9 
+# local path metaflow.s3.dcn4wxq6/metaflow.s3.one_file.o34_2d3z 
+# bytes pineapple 
+# unicode pineapple 
+# metadata  NULL
+# content-type binary/octet-stream 
+# downloaded TRUE 
 
-# Get a single object
-s3_object <- s3_client$get("my_key")
-
-# Put a single object
-url <- s3_client$put("my_key", "My object content")
-
-# Get multiple objects
-s3_objects <- s3_client$get_many(c("key1", "key2", "key3"))
-
-# Put multiple objects
-results <- s3_client$put_many(list(
-  list(key = "key1", value = "Content 1"),
-  list(key = "key2", value = "Content 2")
-))
-
-# Get objects recursively
-recursive_objects <- s3_client$get_recursive(c("prefix1", "prefix2"))
-
-# Put multiple files
-results <- s3_client$put_files(list(
-  list(key = "key1", path = "path/to/file1"),
-  list(key = "key2", path = "path/to/file2")
-))
+s3 <- S3$new()
+res <- s3$get('s3://metaflow-r-s3/tmp/external_data')
+# > res$text
+# [1] "I know nothing about Metaflow"
 ```

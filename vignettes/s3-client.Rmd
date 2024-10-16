@@ -342,7 +342,7 @@ This object represents a path or an object in S3, with an optional local copy.
 
 `s3_object` instances are not instantiated directly, but they are returned by many methods of the `S3` R6 class.
 
-#### s3_object$exists()
+#### s3_object$exists
 
 Does this key correspond to an object in S3?
 
@@ -350,7 +350,7 @@ Does this key correspond to an object in S3?
 
 - logical: TRUE if this object points at an existing object (file) in S3.
 
-#### s3_object$downloaded()
+#### s3_object$downloaded
 
 Has this object been downloaded?
 
@@ -360,7 +360,7 @@ If TRUE, the contents can be accessed through `path()`, `blob()`, and `text()` m
 
 - logical: TRUE if the contents of this object have been downloaded.
 
-#### s3_object$url()
+#### s3_object$url
 
 S3 location of the object
 
@@ -368,7 +368,7 @@ S3 location of the object
 
 - character: The S3 location of this object.
 
-#### s3_object$prefix()
+#### s3_object$prefix
 
 Prefix requested that matches this object.
 
@@ -376,7 +376,7 @@ Prefix requested that matches this object.
 
 - character: Requested prefix
 
-#### s3_object$key()
+#### s3_object$key
 
 Key corresponds to the key given to the get call that produced this object.
 
@@ -386,7 +386,7 @@ This may be a full S3 URL or a suffix based on what was requested.
 
 - character: Key requested.
 
-#### s3_object$path()
+#### s3_object$path
 
 Path to a local temporary file corresponding to the object downloaded.
 
@@ -396,7 +396,7 @@ This file gets deleted automatically when an S3 scope exits. Returns NULL if thi
 
 - character: Local path, if the object has been downloaded.
 
-#### s3_object$blob()
+#### s3_object$blob
 
 Contents of the object as a byte string or NULL if the object hasn't been downloaded.
 
@@ -404,7 +404,7 @@ Contents of the object as a byte string or NULL if the object hasn't been downlo
 
 - raw: Contents of the object as bytes.
 
-#### s3_object$text()
+#### s3_object$text
 
 Contents of the object as a string or NULL if the object hasn't been downloaded.
 
@@ -414,7 +414,7 @@ The object is assumed to contain UTF-8 encoded data.
 
 - character: Contents of the object as text.
 
-#### s3_object$size()
+#### s3_object$size
 
 Size of the object in bytes.
 
@@ -424,7 +424,7 @@ Returns NULL if the key does not correspond to an object in S3.
 
 - integer: Size of the object in bytes, if the object exists.
 
-#### s3_object$has_info()
+#### s3_object$has_info
 
 Returns true if this `s3_object` contains the content-type MIME header or user-defined metadata.
 
@@ -434,7 +434,7 @@ If FALSE, this means that `content_type()`, `metadata()`, `range_info()` and `la
 
 - logical: TRUE if additional metadata is available.
 
-#### s3_object$metadata()
+#### s3_object$metadata
 
 Returns a list of user-defined metadata, or NULL if no metadata is defined.
 
@@ -442,7 +442,7 @@ Returns a list of user-defined metadata, or NULL if no metadata is defined.
 
 - list: User-defined metadata.
 
-#### s3_object$content_type()
+#### s3_object$content_type
 
 Returns the content-type of the S3 object or NULL if it is not defined.
 
@@ -450,7 +450,7 @@ Returns the content-type of the S3 object or NULL if it is not defined.
 
 - character: Content type or NULL if the content type is undefined.
 
-#### s3_object$range_info()
+#### s3_object$range_info
 
 If the object corresponds to a partially downloaded object, returns information of what was downloaded.
 
@@ -460,7 +460,7 @@ The returned object has the following fields:
 - `request_offset`: The starting offset.
 - `request_length`: The number of bytes downloaded.
 
-#### s3_object$last_modified()
+#### s3_object$last_modified
 
 Returns the last modified unix timestamp of the object.
 
