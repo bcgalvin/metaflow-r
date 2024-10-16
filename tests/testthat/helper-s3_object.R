@@ -3,13 +3,17 @@ mock_s3object <- reticulate::py_run_string("
 class MockS3Object:
     def __init__(self):
         self.url = 's3://bucket/key'
-        self.prefix = 'prefix'
         self.key = 'key'
-        self.exists = True
         self.size = 1000
-        self.downloaded = False
+        self.path = '/local/path/to/file'
+        self.blob = b'mock blob content'
+        self.text = 'mock text content'
+        self.metadata = {'key1': 'value1', 'key2': 'value2'}
         self.content_type = 'text/plain'
+        self.downloaded = False
+        self.exists = True
         self.last_modified = '2023-05-01 12:00:00'
+        self.prefix = 'prefix'
         self._has_info = True  # Internal attribute for the read-only has_info property
         self.encryption = 'AES256'
         self.range_info = {'total_size': 1000, 'request_offset': 0, 'request_length': 1000}
